@@ -7,17 +7,31 @@ interface StatsProps {
 
 export default function Stats({ salesData }: StatsProps) {
   const countries = Object.keys(salesData)
-  const totalSales = Object.values(salesData).reduce((sum, count) => sum + count, 0)
+  const totalSales = Object.values(salesData).reduce((sum, data) => sum + data.count, 0)
   
   const sortedCountries = countries
-    .map(country => ({ country, sales: salesData[country] }))
+    .map(country => ({ 
+      country, 
+      sales: salesData[country].count,
+      firstSale: salesData[country].firstSale,
+      lastSale: salesData[country].lastSale
+    }))
     .sort((a, b) => b.sales - a.sales)
 
   const topCountries = sortedCountries.slice(0, 5)
-  const bottomCountries = sortedCountries.slice(-5).reverse()
+  const lowestCountries = sortedCountries.slice(-5).reverse()
+
+  // Sort by most recent first sale for "Newest 5 Countries"
+  const newestCountries = [...sortedCountries]
+    .sort((a, b) => b.firstSale - a.firstSale)
+    .slice(0, 5)
 
   const topCountry = sortedCountries[0]
   const leastCountry = sortedCountries[sortedCountries.length - 1]
+
+  // Total countries in the world (UN recognized countries + some others)
+  const totalWorldCountries = 195
+  const countriesOutstanding = totalWorldCountries - countries.length
 
   return (
     <div className="stats">
@@ -31,6 +45,10 @@ export default function Stats({ salesData }: StatsProps) {
           <div className="metric">
             <span className="metric-value">{countries.length}</span>
             <span className="metric-label">Countries</span>
+          </div>
+          <div className="metric">
+            <span className="metric-value">{countriesOutstanding}</span>
+            <span className="metric-label">Countries Outstanding</span>
           </div>
           {topCountry && (
             <div className="metric">
@@ -80,15 +98,30 @@ export default function Stats({ salesData }: StatsProps) {
         </div>
       )}
 
-      {bottomCountries.length > 0 && sortedCountries.length > 5 && (
+      {lowestCountries.length > 0 && sortedCountries.length > 5 && (
         <div className="stats-card">
-          <h3>Bottom 5 Countries</h3>
+          <h3>Lowest 5 Countries</h3>
           <div className="leaderboard">
-            {bottomCountries.map((item, index) => (
+            {lowestCountries.map((item, index) => (
               <div key={item.country} className="leaderboard-item">
                 <span className="rank">#{sortedCountries.length - index}</span>
                 <span className="country">{item.country}</span>
                 <span className="sales">{item.sales}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {newestCountries.length > 0 && (
+        <div className="stats-card">
+          <h3>Newest 5 Countries</h3>
+          <div className="leaderboard">
+            {newestCountries.map((item, index) => (
+              <div key={item.country} className="leaderboard-item">
+                <span className="rank">#{index + 1}</span>
+                <span className="country">{item.country}</span>
+                <span className="sales">{new Date(item.firstSale).toLocaleDateString()}</span>
               </div>
             ))}
           </div>

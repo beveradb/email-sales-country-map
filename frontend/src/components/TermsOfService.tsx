@@ -4,8 +4,13 @@ export default function TermsOfService() {
   return (
     <div className="legal-page">
       <div className="legal-container">
-        <h1>Terms of Service</h1>
-        <p className="last-updated">Last updated: August 17, 2025</p>
+        <div className="legal-header">
+          <img src="/logo.svg" alt="Email Sales Map Logo" className="legal-logo" />
+          <div>
+            <h1>Terms of Service</h1>
+            <p className="last-updated">Last updated: August 17, 2025</p>
+          </div>
+        </div>
 
         <section>
           <h2>1. Acceptance of Terms</h2>

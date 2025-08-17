@@ -39,7 +39,7 @@ router.get('/api/auth/logout', async (request: Request, env: Env) => {
 		await env.SESSIONS.delete(`session:${sid}`)
 	}
 	
-	const cookie = serializeCookie('sid', '', { httpOnly: true, sameSite: 'Lax', secure: true, path: '/', maxAge: 0 })
+	const cookie = serializeCookie('sid', '', { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 0 })
 	return new Response(null, { status: 302, headers: { location: '/login', 'set-cookie': cookie } })
 })
 
@@ -88,7 +88,7 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	const sessionData = { accessToken, refreshToken, createdAt: Date.now() }
 	await env.SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 60 * 60 * 24 * 7 })
 
-	const cookie = serializeCookie('sid', sessionId, { httpOnly: true, sameSite: 'Lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
+	const cookie = serializeCookie('sid', sessionId, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
 	return new Response(null, { status: 302, headers: { location: '/', 'set-cookie': cookie } })
 })
 
@@ -166,7 +166,7 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 				const msgRes = await fetch(GMAIL_GET_ENDPOINT(firstMessageId), {
 					headers: { authorization: `Bearer ${accessToken}` }
 				})
-				const msgDetails = await msgRes.json()
+				const msgDetails = await msgRes.json() as any
 				
 				// Extract email body text for debugging (both plain text and HTML)
 				const bodyParts: string[] = []
@@ -247,6 +247,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 	}
 
 	const counts: Record<string, number> = {}
+	const countryTimestamps: Record<string, number[]> = {} // Track all timestamps per country
 	const chunkSize = 25 // Workers have concurrency limits; small chunk size
 	for (let i = 0; i < messageIds.length; i += chunkSize) {
 		const chunk = messageIds.slice(i, i + chunkSize)
@@ -282,12 +283,33 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 				const country = match[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '')
 				if (country && country !== 'IP:') {
 					counts[country] = (counts[country] || 0) + 1
+					
+					// Extract timestamp from email (use internalDate which is the received timestamp)
+					const timestamp = msg.internalDate ? parseInt(msg.internalDate) : Date.now()
+					if (!countryTimestamps[country]) {
+						countryTimestamps[country] = []
+					}
+					countryTimestamps[country].push(timestamp)
 				}
 			}
 		}
 	}
 
-	const body = JSON.stringify(counts)
+	// Create enriched data structure with both counts and timestamps
+	const enrichedData: Record<string, { count: number; firstSale: number; lastSale: number }> = {}
+	
+	for (const [country, count] of Object.entries(counts)) {
+		const timestamps = countryTimestamps[country] || []
+		if (timestamps.length > 0) {
+			enrichedData[country] = {
+				count,
+				firstSale: Math.min(...timestamps),
+				lastSale: Math.max(...timestamps)
+			}
+		}
+	}
+
+	const body = JSON.stringify(enrichedData)
 	await env.SALES_CACHE.put(cacheKey, body, { expirationTtl: 3600 })
 	return new Response(body, { headers: { 'content-type': 'application/json; charset=utf-8' } })
 })

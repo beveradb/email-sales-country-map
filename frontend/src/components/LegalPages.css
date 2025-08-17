@@ -14,13 +14,27 @@
   line-height: 1.6;
 }
 
+.legal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #3182ce;
+}
+
+.legal-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-top: 0.5rem;
+}
+
 .legal-container h1 {
   font-size: 2.5rem;
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 0.5rem;
-  border-bottom: 3px solid #3182ce;
-  padding-bottom: 1rem;
 }
 
 .last-updated {
@@ -89,6 +103,18 @@
 @media (max-width: 768px) {
   .legal-container {
     padding: 2rem 1.5rem;
+  }
+  
+  .legal-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .legal-logo {
+    width: 48px;
+    height: 48px;
+    margin-top: 0;
   }
   
   .legal-container h1 {

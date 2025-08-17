@@ -10,8 +10,20 @@ interface WorldMapProps {
   mode: 'choropleth' | 'dots'
 }
 
+interface GeographyFeature {
+  rsmKey: string
+  properties: {
+    NAME: string
+    ISO_A3: string
+  }
+}
+
+interface GeographiesRenderProps {
+  geographies: GeographyFeature[]
+}
+
 export default function WorldMap({ salesData, mode }: WorldMapProps) {
-  const salesValues = Object.values(salesData)
+  const salesValues = Object.values(salesData).map(data => data.count)
   const maxSales = Math.max(...salesValues, 1)
   const minSales = Math.min(...salesValues.filter(v => v > 0), 0)
 
@@ -85,13 +97,13 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
     if (!salesData || !countryName || !countryId) return 0
     
     // Try exact match first
-    if (salesData[countryName]) return salesData[countryName]
+    if (salesData[countryName]) return salesData[countryName].count
     
     // Try mapped name
     const mappedName = Object.keys(countryNameMap).find(key => 
       countryNameMap[key] === countryId
     )
-    if (mappedName && salesData[mappedName]) return salesData[mappedName]
+    if (mappedName && salesData[mappedName]) return salesData[mappedName].count
     
     // Try reverse lookup in our sales data
     const matchingKey = Object.keys(salesData).find(key => 
@@ -101,7 +113,7 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
       )
     )
     
-    return matchingKey ? salesData[matchingKey] : 0
+    return matchingKey ? salesData[matchingKey].count : 0
   }
 
   return (
@@ -114,9 +126,9 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
         }}
       >
         <Geographies geography={geoUrl}>
-          {({ geographies }: { geographies: any[] }) => (
+          {({ geographies }: GeographiesRenderProps) => (
             <>
-              {geographies.map((geo: any) => {
+              {geographies.map((geo: GeographyFeature) => {
                 const countryName = geo?.properties?.NAME
                 const countryId = geo?.properties?.ISO_A3
                 const sales = getSalesForCountry(countryName || '', countryId || '')
@@ -154,7 +166,7 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
         </Geographies>
         
         {mode === 'dots' &&
-          Object.entries(salesData).map(([country, sales]) => {
+          Object.entries(salesData).map(([country, data]) => {
             // For simplicity, we'll use some common coordinates
             // In a real app, you'd want a proper country coordinate lookup
             const coordinates = getCountryCoordinates(country)
@@ -163,14 +175,14 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
             return (
               <Marker key={country} coordinates={coordinates}>
                 <circle
-                  r={sizeScale(sales)}
+                  r={sizeScale(data.count)}
                   fill="#3182ce"
                   fillOpacity={0.7}
                   stroke="#1a365d"
                   strokeWidth={1}
                   style={{ cursor: 'pointer' }}
                 >
-                  <title>{`${country}: ${sales} sales`}</title>
+                  <title>{`${country}: ${data.count} sales`}</title>
                 </circle>
               </Marker>
             )

@@ -5,7 +5,11 @@ import Controls from './Controls'
 import './DashboardPage.css'
 
 export interface SalesData {
-  [country: string]: number
+  [country: string]: {
+    count: number
+    firstSale: number  // timestamp
+    lastSale: number   // timestamp
+  }
 }
 
 export default function DashboardPage() {
@@ -13,7 +17,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [visualizationMode, setVisualizationMode] = useState<'choropleth' | 'dots'>('choropleth')
-  const [debugData, setDebugData] = useState<any>(null)
+  const [debugData, setDebugData] = useState<unknown>(null)
   const [showDebug, setShowDebug] = useState(false)
 
   const fetchSalesData = async (forceRefresh = false) => {
@@ -92,7 +96,10 @@ export default function DashboardPage() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>Email Sales Map</h1>
+          <div className="dashboard-title">
+            <img src="/logo.svg" alt="Email Sales Map Logo" className="dashboard-logo" />
+            <h1>Email Sales Map</h1>
+          </div>
           <div className="header-actions">
             <button onClick={handleRefresh} className="refresh-button">
               🔄 Refresh Data

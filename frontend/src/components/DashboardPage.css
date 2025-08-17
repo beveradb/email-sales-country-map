@@ -21,6 +21,18 @@
   align-items: center;
 }
 
+.dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
 .dashboard-header h1 {
   font-size: 1.8rem;
   font-weight: 700;
