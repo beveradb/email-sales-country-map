@@ -33,7 +33,7 @@
   gap: 1rem;
 }
 
-.refresh-button, .logout-button {
+.refresh-button, .debug-button, .logout-button {
   padding: 0.5rem 1rem;
   border-radius: 6px;
   border: none;
@@ -49,6 +49,15 @@
 
 .refresh-button:hover {
   background: #2c5282;
+}
+
+.debug-button {
+  background: #805ad5;
+  color: white;
+}
+
+.debug-button:hover {
+  background: #6b46c1;
 }
 
 .logout-button {
@@ -68,6 +77,20 @@
 
 .dashboard-controls {
   margin-bottom: 2rem;
+}
+
+.debug-panel {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #805ad5;
+}
+
+.debug-panel h3 {
+  margin: 0 0 1rem 0;
+  color: #4a5568;
 }
 
 .dashboard-content {

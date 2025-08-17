@@ -13,6 +13,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [visualizationMode, setVisualizationMode] = useState<'choropleth' | 'dots'>('choropleth')
+  const [debugData, setDebugData] = useState<any>(null)
+  const [showDebug, setShowDebug] = useState(false)
 
   const fetchSalesData = async (forceRefresh = false) => {
     setLoading(true)
@@ -52,6 +54,18 @@ export default function DashboardPage() {
     window.location.href = '/api/auth/logout'
   }
 
+  const fetchDebugData = async () => {
+    try {
+      const response = await fetch('/api/debug')
+      if (response.ok) {
+        const data = await response.json()
+        setDebugData(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch debug data:', err)
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -83,6 +97,9 @@ export default function DashboardPage() {
             <button onClick={handleRefresh} className="refresh-button">
               🔄 Refresh Data
             </button>
+            <button onClick={() => { setShowDebug(!showDebug); if (!showDebug) fetchDebugData(); }} className="debug-button">
+              🐛 Debug
+            </button>
             <button onClick={handleLogout} className="logout-button">
               Sign Out
             </button>
@@ -97,6 +114,19 @@ export default function DashboardPage() {
             onModeChange={setVisualizationMode}
           />
         </div>
+
+        {showDebug && (
+          <div className="debug-panel">
+            <h3>🐛 Debug Information</h3>
+            {debugData ? (
+              <pre style={{ background: '#f5f5f5', padding: '1rem', borderRadius: '4px', fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
+                {JSON.stringify(debugData, null, 2)}
+              </pre>
+            ) : (
+              <p>Loading debug data...</p>
+            )}
+          </div>
+        )}
 
         <div className="dashboard-content">
           <div className="map-section">
