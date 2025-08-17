@@ -325,6 +325,132 @@ input[type="range"]::-moz-range-thumb {
   transform: translateY(-1px);
 }
 
+/* Compact Controls */
+.mode-toggles-compact {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mode-button-compact {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.mode-button-compact:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.mode-button-compact.active {
+  border-color: #3182ce;
+  background: #ebf8ff;
+  color: #2c5aa0;
+}
+
+.color-theme-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.color-swatch {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.color-swatch:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-swatch.active {
+  border-color: #2d3748;
+  box-shadow: 0 0 0 2px #3182ce;
+  transform: scale(1.1);
+}
+
+.cutoffs-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cutoff-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.cutoff-compact span {
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.cutoff-compact input {
+  width: 100%;
+  padding: 0.5rem 0.1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-align: center;
+  background: white;
+  color: #2d3748;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.cutoff-compact input:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cutoff-compact input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 1px #3182ce;
+  background: #f7fafc;
+}
+
+.preset-buttons-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preset-button-compact {
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+  color: #4a5568;
+  font-weight: 500;
+  text-align: center;
+}
+
+.preset-button-compact:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   .controls {
     flex-direction: column;
@@ -347,6 +473,18 @@ input[type="range"]::-moz-range-thumb {
   }
   
   .preset-buttons {
+    flex-direction: column;
+  }
+  
+  .cutoffs-row {
+    flex-wrap: wrap;
+  }
+  
+  .cutoff-compact {
+    min-width: 60px;
+  }
+  
+  .preset-buttons-row {
     flex-direction: column;
   }
 }

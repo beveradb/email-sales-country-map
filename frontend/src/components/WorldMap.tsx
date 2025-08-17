@@ -198,12 +198,12 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
               <>
                 {geographies.map((geo: GeographyType) => {
                   const countryName = geo?.properties?.name
-                  const countryId = geo?.properties?.iso_a3 || geo?.id
-                  const sales = getSalesForCountry(countryName || '', countryId || '')
+                  const countryId = geo?.properties?.iso_a3 || String(geo?.id || '')
+                  const sales = getSalesForCountry(countryName || '', countryId)
                   
                   const fillColor = mode === 'choropleth' 
                     ? getColorByCutoff(sales)
-                    : '#e2e8f0'
+                    : sales === 0 ? '#f8fafc' : '#e2e8f0'
                   
                   return (
                   <Geography
@@ -220,7 +220,7 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
                       hover: {
                         fill: mode === 'choropleth' 
                           ? getColorByCutoff(sales > 0 ? sales * 1.2 : sales) 
-                          : '#cbd5e0',
+                          : sales === 0 ? '#e2e8f0' : '#cbd5e0',
                         outline: 'none',
                         cursor: 'pointer',
                         fillOpacity: Math.min(settings.opacity + 0.2, 1),

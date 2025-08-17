@@ -15,7 +15,7 @@
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -84,15 +84,15 @@
 .dashboard-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .dashboard-controls {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .debug-panel {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   padding: 1rem;
   background: white;
   border-radius: 8px;
@@ -144,19 +144,19 @@
 .dashboard-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .main-section {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 2rem;
+  grid-template-columns: 380px 1fr;
+  gap: 1rem;
   align-items: start;
 }
 
 .sidebar {
   position: sticky;
-  top: 2rem;
+  top: 1rem;
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
 }
@@ -164,7 +164,7 @@
 .content-area {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .map-section {
@@ -206,7 +206,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .dashboard-error h2 {
@@ -216,7 +216,7 @@
 
 .dashboard-error p {
   color: #4a5568;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   max-width: 400px;
 }
 
@@ -250,9 +250,20 @@
 }
 
 @media (max-width: 768px) {
-  .bottom-section {
+  .main-section {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  .sidebar {
+    position: relative;
+    top: 0;
+    max-height: none;
+    order: 2;
+  }
+  
+  .content-area {
+    order: 1;
   }
   
   .header-content {

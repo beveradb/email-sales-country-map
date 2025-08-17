@@ -1,21 +1,34 @@
 .stats {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+}
+
+/* Compact layout rows */
+.stats-row-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stats-row-2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .stats-card {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .stats-card h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1a202c;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
 }
 
 .stats-card h4 {
@@ -114,12 +127,122 @@
   text-align: right;
 }
 
+/* Compact components */
+.metrics-compact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.metrics-compact .metric {
+  padding: 0.5rem 0;
+}
+
+.metrics-compact .metric-value {
+  font-size: 1.25rem;
+}
+
+.performers-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.performer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.performer-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.performer-value {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  background: #f7fafc;
+  border-radius: 6px;
+}
+
+.performer-value .country-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.performer-value .country-sales {
+  font-weight: 600;
+  color: #3182ce;
+  font-size: 0.875rem;
+}
+
+.leaderboard-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.leaderboard-item-compact {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.leaderboard-item-compact:hover {
+  background: #edf2f7;
+}
+
+.leaderboard-item-compact .rank {
+  font-size: 0.8rem;
+  min-width: 1.5rem;
+}
+
+.leaderboard-item-compact .country {
+  font-size: 0.875rem;
+}
+
+.leaderboard-item-compact .sales {
+  font-size: 0.875rem;
+}
+
 @media (max-width: 480px) {
   .metrics {
     grid-template-columns: repeat(2, 1fr);
   }
   
   .best-worst {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-row-1 {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-row-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .performers-compact {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-row-2 {
     grid-template-columns: 1fr;
   }
 }

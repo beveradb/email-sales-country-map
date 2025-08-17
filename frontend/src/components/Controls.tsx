@@ -23,55 +23,47 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
   return (
     <div className="controls">
       <div className="controls-card">
-        <h3>Visualization Mode</h3>
-        <div className="mode-toggles">
-          <button
-            className={`mode-button ${mode === 'choropleth' ? 'active' : ''}`}
-            onClick={() => onModeChange('choropleth')}
-          >
-            <span className="mode-icon">🗺️</span>
-            <span className="mode-info">
-              <span className="mode-title">Color Map</span>
-              <span className="mode-description">Countries colored by sales volume</span>
-            </span>
-          </button>
-          
-          <button
-            className={`mode-button ${mode === 'dots' ? 'active' : ''}`}
-            onClick={() => onModeChange('dots')}
-          >
-            <span className="mode-icon">📍</span>
-            <span className="mode-info">
-              <span className="mode-title">Dot Size</span>
-              <span className="mode-description">Dots sized by sales volume</span>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <div className="controls-card">
-        <h3>Customization</h3>
+        <h3>Map Controls</h3>
         
         <div className="controls-expanded">
+            
+            {/* Visualization Mode */}
+            <div className="control-group">
+              <label>Visualization Mode</label>
+              <div className="mode-toggles-compact">
+                <button
+                  className={`mode-button-compact ${mode === 'choropleth' ? 'active' : ''}`}
+                  onClick={() => onModeChange('choropleth')}
+                >
+                  🗺️ Color Map
+                </button>
+                
+                <button
+                  className={`mode-button-compact ${mode === 'dots' ? 'active' : ''}`}
+                  onClick={() => onModeChange('dots')}
+                >
+                  📍 Dot Size
+                </button>
+              </div>
+            </div>
             
             {/* Color Theme */}
             <div className="control-group">
               <label>Color Theme</label>
-              <div className="color-theme-grid">
+              <div className="color-theme-row">
                 {(['green', 'blue', 'purple', 'orange', 'red'] as const).map(theme => (
                   <button
                     key={theme}
-                    className={`color-theme-button ${settings.colorTheme === theme ? 'active' : ''}`}
+                    className={`color-swatch ${settings.colorTheme === theme ? 'active' : ''}`}
                     onClick={() => updateSettings({ colorTheme: theme })}
+                    title={theme.charAt(0).toUpperCase() + theme.slice(1)}
                     style={{
                       background: theme === 'green' ? '#2d5a2d' :
                                  theme === 'blue' ? '#1e3a8a' :
                                  theme === 'purple' ? '#581c87' :
                                  theme === 'orange' ? '#c2410c' : '#991b1b'
                     }}
-                  >
-                    {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                  </button>
+                  />
                 ))}
               </div>
             </div>
@@ -151,9 +143,9 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
             {/* Sales Cutoffs */}
             <div className="control-group">
               <label>Sales Thresholds</label>
-              <div className="cutoffs-grid">
-                <div className="cutoff-item">
-                  <label>Low</label>
+              <div className="cutoffs-row">
+                <div className="cutoff-compact">
+                  <span>Low</span>
                   <input
                     type="number"
                     min="1"
@@ -161,8 +153,8 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                     onChange={(e) => updateCutoffs('low', parseInt(e.target.value) || 1)}
                   />
                 </div>
-                <div className="cutoff-item">
-                  <label>Medium</label>
+                <div className="cutoff-compact">
+                  <span>Med</span>
                   <input
                     type="number"
                     min="1"
@@ -170,8 +162,8 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                     onChange={(e) => updateCutoffs('medium', parseInt(e.target.value) || 10)}
                   />
                 </div>
-                <div className="cutoff-item">
-                  <label>High</label>
+                <div className="cutoff-compact">
+                  <span>High</span>
                   <input
                     type="number"
                     min="1"
@@ -179,8 +171,8 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                     onChange={(e) => updateCutoffs('high', parseInt(e.target.value) || 100)}
                   />
                 </div>
-                <div className="cutoff-item">
-                  <label>Very High</label>
+                <div className="cutoff-compact">
+                  <span>Max</span>
                   <input
                     type="number"
                     min="1"
@@ -189,15 +181,14 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                   />
                 </div>
               </div>
-              <small>Countries with sales at or above these levels will be colored differently</small>
             </div>
 
             {/* Preset Buttons */}
             <div className="control-group">
               <label>Quick Presets</label>
-              <div className="preset-buttons">
+              <div className="preset-buttons-row">
                 <button
-                  className="preset-button"
+                  className="preset-button-compact"
                   onClick={() => updateSettings({
                     colorTheme: 'green',
                     opacity: 0.8,
@@ -209,7 +200,7 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                   🌱 Default
                 </button>
                 <button
-                  className="preset-button"
+                  className="preset-button-compact"
                   onClick={() => updateSettings({
                     colorTheme: 'purple',
                     opacity: 0.9,
@@ -222,7 +213,7 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                   💎 Premium
                 </button>
                 <button
-                  className="preset-button"
+                  className="preset-button-compact"
                   onClick={() => updateSettings({
                     colorTheme: 'orange',
                     opacity: 0.7,
@@ -232,7 +223,7 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
                     cutoffs: { low: 1, medium: 25, high: 250, veryHigh: 2500 }
                   })}
                 >
-                  🔥 Heat Map
+                  🔥 Heat
                 </button>
               </div>
             </div>
