@@ -61,8 +61,8 @@ Update:
 ## 4. Verify Domain Setup
 
 Your domain setup looks correct in the screenshots:
-- ✅ Route: `emailsalesmap.beveradb.com/api/*` → `sales-mapper-worker`
-- ✅ Custom domain: `emailsalesmap.beveradb.com`
+- ✅ Route: `mailsalesmap.org/api/*` → `sales-mapper-worker`
+- ✅ Custom domain: `mailsalesmap.org`
 
 ## 5. Test Deployment
 
@@ -82,7 +82,7 @@ After updating the API token:
 
 ## 6. Test the Application
 
-Once deployed, visit: https://emailsalesmap.beveradb.com
+Once deployed, visit: https://mailsalesmap.org
 
 1. Click **"Sign in with Google"**
 2. Grant Gmail permissions  

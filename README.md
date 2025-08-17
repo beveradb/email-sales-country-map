@@ -3,8 +3,8 @@
 Data visualization tool that authenticates with Google, reads specific emails from Gmail, aggregates country data, and displays it on an interactive world map.
 
 ## 🚀 Live Demo
-- **Frontend**: https://emailsalesmap.beveradb.com
-- **API**: https://emailsalesmap.beveradb.com/api/health
+- **Frontend**: https://mailsalesmap.org
+- **API**: https://mailsalesmap.org/api/health
 
 ## 🏗️ Architecture
 - **Frontend**: React + TypeScript + Vite (served by Cloudflare Pages)
