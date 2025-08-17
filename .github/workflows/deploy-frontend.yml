@@ -42,3 +42,4 @@ jobs:
           projectName: emailsalesmap
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: "4.30.0"
