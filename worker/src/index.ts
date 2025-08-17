@@ -134,7 +134,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	let nextPageToken: string | undefined
 	const messageIds: string[] = []
-	const query = `from:clips4sale subject:"You've made a sale"`
+	const query = `(from:clips4sale OR from:stores.clips4sale.com) (subject:"You've made a sale" OR subject:"Fwd: You've Made a Sale!")`
 	while (true) {
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
 		listUrl.searchParams.set('q', query)
@@ -171,10 +171,13 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 			}
 			collect(msg.payload)
 			const text = bodyParts.join('\n')
-			const match = text.match(/Country from IP:\s*(.+)/i)
+			// More robust regex to handle various formats and HTML entities
+			const match = text.match(/Country from IP:\s*(?:<[^>]*>)?\s*([^<\n\r]+)/i)
 			if (match) {
-				const country = match[1].trim()
-				counts[country] = (counts[country] || 0) + 1
+				const country = match[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '')
+				if (country && country !== 'IP:') {
+					counts[country] = (counts[country] || 0) + 1
+				}
 			}
 		}
 	}
