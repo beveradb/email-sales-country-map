@@ -23,5 +23,13 @@ export default defineConfig({
         },
       },
     },
+    // Ensure source maps for better debugging
+    sourcemap: true,
+    // Add build verification
+    reportCompressedSize: true,
+  },
+  // Ensure proper module resolution
+  resolve: {
+    extensions: ['.tsx', '.ts', '.jsx', '.js'],
   },
 })
