@@ -1,6 +1,6 @@
 .world-map {
   width: 100%;
-  height: 500px;
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -8,7 +8,7 @@
 
 .world-map svg {
   width: 100%;
-  height: 100%;
+  height: 400px;
   max-width: 100%;
 }
 
@@ -18,7 +18,7 @@
 }
 
 @media (max-width: 768px) {
-  .world-map {
-    height: 300px;
+  .world-map svg {
+    max-height: 300px;
   }
 }

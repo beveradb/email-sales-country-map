@@ -8,6 +8,9 @@ declare module 'react-simple-maps' {
       center?: [number, number]
     }
     children?: ReactNode
+    width?: number
+    height?: number
+    viewBox?: string
   }
 
   export interface GeographiesProps {
@@ -37,11 +40,11 @@ declare module 'react-simple-maps' {
   export interface Geography {
     rsmKey: string
     properties: {
-      NAME: string
-      ISO_A3: string
-      [key: string]: any
+      name: string
+      iso_a3?: string
+      [key: string]: unknown
     }
-    [key: string]: any
+    [key: string]: unknown
   }
 
   export const ComposableMap: React.FC<ComposableMapProps>

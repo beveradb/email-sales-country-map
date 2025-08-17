@@ -1,0 +1,45 @@
+{
+  "name": "email-sales-map",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Data visualization tool that maps email sales data on an interactive world map",
+  "author": "Andrew",
+  "license": "MIT",
+  "scripts": {
+    "install-all": "npm install && cd frontend && npm install && cd ../worker && npm install && cd ..",
+    "dev": "concurrently \"npm run dev:worker\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:worker": "cd worker && npm run dev",
+    "build": "npm run build:frontend && npm run build:worker",
+    "build:frontend": "cd frontend && npm run build",
+    "build:worker": "cd worker && npm run deploy -- --dry-run",
+    "type-check": "npm run type-check:frontend && npm run type-check:worker",
+    "type-check:frontend": "cd frontend && npx tsc --noEmit",
+    "type-check:worker": "cd worker && npx tsc --noEmit",
+    "lint": "npm run lint:frontend && npm run lint:worker",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:worker": "cd worker && echo 'Worker linting completed (no linter configured)'",
+    "test": "npm run type-check && npm run build",
+    "clean": "rm -rf frontend/dist frontend/node_modules worker/node_modules node_modules",
+    "deploy:frontend": "cd frontend && npm run build && wrangler pages deploy dist",
+    "deploy:worker": "cd worker && npm run deploy",
+    "deploy": "npm run deploy:worker && npm run deploy:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "email",
+    "sales",
+    "visualization",
+    "maps",
+    "gmail",
+    "oauth",
+    "cloudflare",
+    "workers",
+    "react"
+  ]
+}

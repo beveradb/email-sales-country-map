@@ -1,4 +1,4 @@
-import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Marker, type Geography as GeographyType } from 'react-simple-maps'
 import { scaleLinear } from 'd3-scale'
 import type { SalesData } from './DashboardPage'
 import './WorldMap.css'
@@ -25,16 +25,8 @@ interface WorldMapProps {
   settings: VisualizationSettings
 }
 
-interface GeographyFeature {
-  rsmKey: string
-  properties: {
-    NAME: string
-    ISO_A3: string
-  }
-}
-
 interface GeographiesRenderProps {
-  geographies: GeographyFeature[]
+  geographies: GeographyType[]
 }
 
 export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
@@ -42,10 +34,8 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
   const maxSales = Math.max(...salesValues, 1)
   const minSales = Math.min(...salesValues.filter(v => v > 0), 0)
 
-  // Debug logging to help identify issues
-  console.log('Sales data countries:', Object.keys(salesData))
-  console.log('Sales values:', salesValues)
-  console.log('Min/Max sales:', minSales, maxSales)
+  // Debug logging (reduced for production)
+  console.log(`WorldMap rendering: ${Object.keys(salesData).length} countries with sales data`)
 
   // Color themes
   const colorThemes = {
@@ -70,11 +60,15 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
   // Get color based on cutoffs
   const getColorByCutoff = (count: number) => {
     const { low, medium, high, veryHigh } = settings.cutoffs
+    
+    if (count === 0) return '#f8fafc' // Very light grey for no sales
+    
+    // Use the actual count value in the color scale, not percentages of maxSales
     if (count >= veryHigh) return colorThemes[settings.colorTheme][1] // darkest
-    if (count >= high) return colorScale(maxSales * 0.8)
-    if (count >= medium) return colorScale(maxSales * 0.5)
-    if (count >= low) return colorScale(maxSales * 0.2)
-    return colorThemes[settings.colorTheme][0] // lightest
+    if (count >= high) return colorScale(count)
+    if (count >= medium) return colorScale(count)
+    if (count >= low) return colorScale(count)
+    return '#f8fafc' // Very light grey for countries with sales but below low threshold
   }
 
   // Enhanced country name mapping with both directions
@@ -143,7 +137,6 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     
     // Try exact match first (case-insensitive)
     if (countryName && salesData[countryName]) {
-      console.log(`Direct match found for ${countryName}: ${salesData[countryName].count}`)
       return salesData[countryName].count
     }
     
@@ -152,7 +145,6 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
       key.toLowerCase() === (countryName || '').toLowerCase()
     )
     if (exactMatch) {
-      console.log(`Case-insensitive match found for ${countryName}: ${salesData[exactMatch].count}`)
       return salesData[exactMatch].count
     }
     
@@ -160,7 +152,6 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     if (countryId && reverseCountryMap[countryId]) {
       const mappedName = reverseCountryMap[countryId]
       if (salesData[mappedName]) {
-        console.log(`ISO code match found for ${countryId} -> ${mappedName}: ${salesData[mappedName].count}`)
         return salesData[mappedName].count
       }
     }
@@ -170,7 +161,6 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
       const isoCode = countryNameMap[countryName]
       const altName = reverseCountryMap[isoCode]
       if (altName && salesData[altName]) {
-        console.log(`Name mapping match found for ${countryName} -> ${altName}: ${salesData[altName].count}`)
         return salesData[altName].count
       }
     }
@@ -183,7 +173,6 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
       )
     )
     if (partialMatch) {
-      console.log(`Partial match found for ${countryName}: ${salesData[partialMatch].count}`)
       return salesData[partialMatch].count
     }
     
@@ -198,20 +187,25 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
           scale: 140,
           center: [0, 0],
         }}
+        width={800}
+        height={400}
+        viewBox="0 0 800 400"
       >
         <Geographies geography={geoUrl}>
-          {({ geographies }: GeographiesRenderProps) => (
-            <>
-              {geographies.map((geo: GeographyFeature) => {
-                const countryName = geo?.properties?.NAME
-                const countryId = geo?.properties?.ISO_A3
-                const sales = getSalesForCountry(countryName || '', countryId || '')
-                
-                const fillColor = mode === 'choropleth' && sales > 0 
-                  ? getColorByCutoff(sales)
-                  : '#e2e8f0'
-                
-                return (
+          {({ geographies }: GeographiesRenderProps) => {
+            console.log(`🌐 Choropleth rendering: ${geographies?.length || 0} countries in ${mode} mode`)
+            return (
+              <>
+                {geographies.map((geo: GeographyType) => {
+                  const countryName = geo?.properties?.name
+                  const countryId = geo?.properties?.iso_a3 || geo?.id
+                  const sales = getSalesForCountry(countryName || '', countryId || '')
+                  
+                  const fillColor = mode === 'choropleth' 
+                    ? getColorByCutoff(sales)
+                    : '#e2e8f0'
+                  
+                  return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
@@ -224,8 +218,8 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
                         fillOpacity: settings.opacity,
                       },
                       hover: {
-                        fill: mode === 'choropleth' && sales > 0 
-                          ? getColorByCutoff(sales * 1.2) 
+                        fill: mode === 'choropleth' 
+                          ? getColorByCutoff(sales > 0 ? sales * 1.2 : sales) 
                           : '#cbd5e0',
                         outline: 'none',
                         cursor: 'pointer',
@@ -237,11 +231,12 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
                       },
                     }}
                     title={`${countryName}: ${sales} sales`}
-                  />
-                )
-              })}
-            </>
-          )}
+                    />
+                  )
+                })}
+              </>
+            )
+          }}
         </Geographies>
         
         {mode === 'dots' &&

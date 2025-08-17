@@ -15,6 +15,7 @@ worker/dist/
 .env
 .env.*
 worker/.dev.vars
+worker/.wrangler
 
 # Mac
 .DS_Store

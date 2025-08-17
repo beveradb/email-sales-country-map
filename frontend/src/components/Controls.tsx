@@ -1,4 +1,4 @@
-import { useState } from 'react'
+
 import type { VisualizationSettings } from './WorldMap'
 import './Controls.css'
 
@@ -10,7 +10,6 @@ interface ControlsProps {
 }
 
 export default function Controls({ mode, onModeChange, settings, onSettingsChange }: ControlsProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
 
   const updateSettings = (updates: Partial<VisualizationSettings>) => {
     onSettingsChange({ ...settings, ...updates })
@@ -51,18 +50,9 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
       </div>
 
       <div className="controls-card">
-        <div className="controls-header">
-          <h3>Customization</h3>
-          <button 
-            className="expand-button"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? '▼' : '▶'} {isExpanded ? 'Hide' : 'Show'} Settings
-          </button>
-        </div>
-
-        {isExpanded && (
-          <div className="controls-expanded">
+        <h3>Customization</h3>
+        
+        <div className="controls-expanded">
             
             {/* Color Theme */}
             <div className="control-group">
@@ -247,8 +237,7 @@ export default function Controls({ mode, onModeChange, settings, onSettingsChang
               </div>
             </div>
 
-          </div>
-        )}
+        </div>
       </div>
     </div>
   )

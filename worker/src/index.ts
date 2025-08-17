@@ -21,6 +21,12 @@ const GMAIL_GET_ENDPOINT = (id: string) => `https://gmail.googleapis.com/gmail/v
 
 function getRedirectUri(request: Request): string {
 	const url = new URL(request.url)
+	
+	// For local development, force localhost:8787
+	if (url.host === 'localhost:8787') {
+		return 'http://localhost:8787/api/auth/callback'
+	}
+	
 	const base = `${url.protocol}//${url.host}`
 	return `${base}/api/auth/callback`
 }
@@ -47,9 +53,10 @@ router.get('/api/auth/login', (request: Request, env: Env) => {
 	const clientId = (env as unknown as Record<string, string>).GOOGLE_CLIENT_ID
 	if (!clientId) return json({ error: 'server not configured' }, 500)
 	
+	const redirectUri = getRedirectUri(request)
 	const params = new URLSearchParams({
 		client_id: clientId,
-		redirect_uri: getRedirectUri(request),
+		redirect_uri: redirectUri,
 		response_type: 'code',
 		scope: 'openid email https://www.googleapis.com/auth/gmail.readonly',
 		access_type: 'offline',
@@ -63,7 +70,17 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	const code = url.searchParams.get('code')
 	if (!code) return json({ error: 'missing code' }, 400)
 
+	// For the callback, we need to use the same redirect_uri that was used in the initial OAuth request
+	// In local development, this should always be localhost:8787
 	const redirectUri = getRedirectUri(request)
+	
+	// Use environment variable to determine if we're in local development
+	const environment = (env as unknown as Record<string, string>).ENVIRONMENT
+	const isLocalDevelopment = environment === 'development'
+	const finalRedirectUri = isLocalDevelopment 
+		? 'http://localhost:8787/api/auth/callback' 
+		: redirectUri
+	
 	const clientId = (env as unknown as Record<string, string>).GOOGLE_CLIENT_ID
 	const clientSecret = (env as unknown as Record<string, string>).GOOGLE_CLIENT_SECRET
 	if (!clientId || !clientSecret) return json({ error: 'server not configured' }, 500)
@@ -75,11 +92,24 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 			code,
 			client_id: clientId,
 			client_secret: clientSecret,
-			redirect_uri: redirectUri,
+			redirect_uri: finalRedirectUri,
 			grant_type: 'authorization_code',
 		}).toString(),
 	})
-	if (!tokenRes.ok) return json({ error: 'token exchange failed' }, 500)
+	if (!tokenRes.ok) {
+		const errorText = await tokenRes.text()
+		console.error('Token exchange failed:', {
+			status: tokenRes.status,
+			statusText: tokenRes.statusText,
+			error: errorText
+		})
+		return json({ 
+			error: 'token exchange failed',
+			details: errorText,
+			status: tokenRes.status,
+			redirectUri: finalRedirectUri 
+		}, 500)
+	}
 	const tokenJson = await tokenRes.json() as any
 	const accessToken = tokenJson.access_token as string
 	const refreshToken = tokenJson.refresh_token as string | undefined
@@ -89,7 +119,10 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	await env.SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 60 * 60 * 24 * 7 })
 
 	const cookie = serializeCookie('sid', sessionId, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
-	return new Response(null, { status: 302, headers: { location: '/', 'set-cookie': cookie } })
+	
+	// Redirect back to frontend after successful authentication
+	const frontendUrl = environment === 'development' ? 'http://localhost:5173' : 'https://mailsalesmap.org'
+	return new Response(null, { status: 302, headers: { location: frontendUrl, 'set-cookie': cookie } })
 })
 
 async function getSession(request: Request, env: Env) {

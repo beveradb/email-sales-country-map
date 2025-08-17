@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [visualizationMode, setVisualizationMode] = useState<'choropleth' | 'dots'>('choropleth')
   const [debugData, setDebugData] = useState<unknown>(null)
   const [showDebug, setShowDebug] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [visualizationSettings, setVisualizationSettings] = useState<VisualizationSettings>({
     colorTheme: 'green',
     dotStyle: 'circle',
@@ -83,6 +84,19 @@ export default function DashboardPage() {
     }
   }
 
+  const copyDebugData = async () => {
+    if (!debugData) return
+    
+    try {
+      const debugText = JSON.stringify(debugData, null, 2)
+      await navigator.clipboard.writeText(debugText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000) // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy debug data:', err)
+    }
+  }
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -128,20 +142,22 @@ export default function DashboardPage() {
       </header>
 
       <main className="dashboard-main">
-        <div className="dashboard-controls">
-          <Controls 
-            mode={visualizationMode}
-            onModeChange={setVisualizationMode}
-            settings={visualizationSettings}
-            onSettingsChange={setVisualizationSettings}
-          />
-        </div>
-
         {showDebug && (
           <div className="debug-panel">
-            <h3>🐛 Debug Information</h3>
+            <div className="debug-header">
+              <h3>🐛 Debug Information</h3>
+              {debugData != null && (
+                <button 
+                  onClick={copyDebugData}
+                  className={`copy-button ${copied ? 'copied' : ''}`}
+                  title="Copy all debug data to clipboard"
+                >
+                  {copied ? '✅ Copied!' : '📋 Copy All'}
+                </button>
+              )}
+            </div>
             {debugData ? (
-              <pre style={{ background: '#f5f5f5', padding: '1rem', borderRadius: '4px', fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
+              <pre style={{ background: '#f5f5f5', color: '#000', padding: '1rem', borderRadius: '4px', fontSize: '12px', overflow: 'auto', maxHeight: '300px' }}>
                 {JSON.stringify(debugData, null, 2)}
               </pre>
             ) : (
@@ -151,16 +167,29 @@ export default function DashboardPage() {
         )}
 
         <div className="dashboard-content">
-          <div className="map-section">
-            <WorldMap 
-              salesData={salesData}
-              mode={visualizationMode}
-              settings={visualizationSettings}
-            />
-          </div>
-          
-          <div className="stats-section">
-            <Stats salesData={salesData} />
+          <div className="main-section">
+            <div className="sidebar">
+              <Controls 
+                mode={visualizationMode}
+                onModeChange={setVisualizationMode}
+                settings={visualizationSettings}
+                onSettingsChange={setVisualizationSettings}
+              />
+            </div>
+            
+            <div className="content-area">
+              <div className="map-section">
+                <WorldMap 
+                  salesData={salesData}
+                  mode={visualizationMode}
+                  settings={visualizationSettings}
+                />
+              </div>
+              
+              <div className="stats-section">
+                <Stats salesData={salesData} />
+              </div>
+            </div>
           </div>
         </div>
       </main>
