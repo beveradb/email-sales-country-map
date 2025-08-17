@@ -155,11 +155,32 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 					headers: { authorization: `Bearer ${accessToken}` }
 				})
 				const msgDetails = await msgRes.json()
+				
+				// Extract email body text for debugging (both plain text and HTML)
+				const bodyParts: string[] = []
+				function collect(p: any) {
+					if (!p) return
+					if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
+						try { bodyParts.push(atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))) } catch {}
+					}
+					if (Array.isArray(p.parts)) p.parts.forEach(collect)
+				}
+				collect(msgDetails.payload)
+				const emailText = bodyParts.join('\n')
+				
+				// Test the country parsing regex
+				const countryMatch = emailText.match(/Country from IP:\s*(?:<[^>]*>)?\s*([^<\n\r]+)/i)
+				const countryFound = countryMatch ? countryMatch[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '') : null
+				
 				debugInfo.firstMessage = {
 					id: firstMessageId,
 					subject: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'subject')?.value,
 					from: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'from')?.value,
-					snippet: msgDetails.snippet
+					snippet: msgDetails.snippet,
+					bodyLength: emailText.length,
+					bodyPreview: emailText.substring(0, 500) + (emailText.length > 500 ? '...' : ''),
+					countryMatch: countryMatch?.[0] || null,
+					countryFound: countryFound
 				}
 			} catch (err) {
 				debugInfo.messageError = err instanceof Error ? err.message : 'Failed to fetch message details'
@@ -216,7 +237,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 			const bodyParts: string[] = []
 			function collect(p: any) {
 				if (!p) return
-				if (p.mimeType === 'text/plain' && p.body?.data) {
+				if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
 					try { bodyParts.push(atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))) } catch {}
 				}
 				if (Array.isArray(p.parts)) p.parts.forEach(collect)
