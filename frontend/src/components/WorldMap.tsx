@@ -5,9 +5,24 @@ import './WorldMap.css'
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json"
 
+export interface VisualizationSettings {
+  colorTheme: 'green' | 'blue' | 'purple' | 'orange' | 'red'
+  dotStyle: 'circle' | 'emoji'
+  dotEmoji: string
+  dotSizeMultiplier: number
+  cutoffs: {
+    low: number
+    medium: number
+    high: number
+    veryHigh: number
+  }
+  opacity: number
+}
+
 interface WorldMapProps {
   salesData: SalesData
   mode: 'choropleth' | 'dots'
+  settings: VisualizationSettings
 }
 
 interface GeographyFeature {
@@ -22,22 +37,47 @@ interface GeographiesRenderProps {
   geographies: GeographyFeature[]
 }
 
-export default function WorldMap({ salesData, mode }: WorldMapProps) {
+export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
   const salesValues = Object.values(salesData).map(data => data.count)
   const maxSales = Math.max(...salesValues, 1)
   const minSales = Math.min(...salesValues.filter(v => v > 0), 0)
 
+  // Debug logging to help identify issues
+  console.log('Sales data countries:', Object.keys(salesData))
+  console.log('Sales values:', salesValues)
+  console.log('Min/Max sales:', minSales, maxSales)
+
+  // Color themes
+  const colorThemes = {
+    green: ['#e8f5e8', '#2d5a2d'],
+    blue: ['#dbeafe', '#1e3a8a'],
+    purple: ['#f3e8ff', '#581c87'],
+    orange: ['#fed7aa', '#c2410c'],
+    red: ['#fee2e2', '#991b1b']
+  }
+
   // Color scale for choropleth
   const colorScale = scaleLinear<string>()
     .domain([minSales, maxSales])
-    .range(['#e8f5e8', '#2d5a2d'])
+    .range(colorThemes[settings.colorTheme])
 
-  // Size scale for dots
+  // Size scale for dots (with multiplier)
+  const baseSizeRange = [4, 20]
   const sizeScale = scaleLinear()
     .domain([minSales, maxSales])
-    .range([4, 20])
+    .range([baseSizeRange[0] * settings.dotSizeMultiplier, baseSizeRange[1] * settings.dotSizeMultiplier])
 
-  // Country name mapping - you might need to expand this based on your data
+  // Get color based on cutoffs
+  const getColorByCutoff = (count: number) => {
+    const { low, medium, high, veryHigh } = settings.cutoffs
+    if (count >= veryHigh) return colorThemes[settings.colorTheme][1] // darkest
+    if (count >= high) return colorScale(maxSales * 0.8)
+    if (count >= medium) return colorScale(maxSales * 0.5)
+    if (count >= low) return colorScale(maxSales * 0.2)
+    return colorThemes[settings.colorTheme][0] // lightest
+  }
+
+  // Enhanced country name mapping with both directions
   const countryNameMap: { [key: string]: string } = {
     'United States': 'USA',
     'United Kingdom': 'GBR',
@@ -92,28 +132,62 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
     'Estonia': 'EST',
   }
 
+  // Create reverse mapping from ISO codes to full names
+  const reverseCountryMap = Object.fromEntries(
+    Object.entries(countryNameMap).map(([name, code]) => [code, name])
+  )
+
   const getSalesForCountry = (countryName: string, countryId: string) => {
     // Ensure we have valid inputs and salesData
-    if (!salesData || !countryName || !countryId) return 0
+    if (!salesData || (!countryName && !countryId)) return 0
     
-    // Try exact match first
-    if (salesData[countryName]) return salesData[countryName].count
+    // Try exact match first (case-insensitive)
+    if (countryName && salesData[countryName]) {
+      console.log(`Direct match found for ${countryName}: ${salesData[countryName].count}`)
+      return salesData[countryName].count
+    }
     
-    // Try mapped name
-    const mappedName = Object.keys(countryNameMap).find(key => 
-      countryNameMap[key] === countryId
+    // Try case-insensitive match
+    const exactMatch = Object.keys(salesData).find(key => 
+      key.toLowerCase() === (countryName || '').toLowerCase()
     )
-    if (mappedName && salesData[mappedName]) return salesData[mappedName].count
+    if (exactMatch) {
+      console.log(`Case-insensitive match found for ${countryName}: ${salesData[exactMatch].count}`)
+      return salesData[exactMatch].count
+    }
     
-    // Try reverse lookup in our sales data
-    const matchingKey = Object.keys(salesData).find(key => 
+    // Try mapping from ISO code to name
+    if (countryId && reverseCountryMap[countryId]) {
+      const mappedName = reverseCountryMap[countryId]
+      if (salesData[mappedName]) {
+        console.log(`ISO code match found for ${countryId} -> ${mappedName}: ${salesData[mappedName].count}`)
+        return salesData[mappedName].count
+      }
+    }
+    
+    // Try mapping from name to ISO and check both ways
+    if (countryName && countryNameMap[countryName]) {
+      const isoCode = countryNameMap[countryName]
+      const altName = reverseCountryMap[isoCode]
+      if (altName && salesData[altName]) {
+        console.log(`Name mapping match found for ${countryName} -> ${altName}: ${salesData[altName].count}`)
+        return salesData[altName].count
+      }
+    }
+    
+    // Try partial matches
+    const partialMatch = Object.keys(salesData).find(key => 
       key && countryName && (
-        key.toLowerCase() === countryName.toLowerCase() ||
-        countryNameMap[key] === countryId
+        key.toLowerCase().includes(countryName.toLowerCase()) ||
+        countryName.toLowerCase().includes(key.toLowerCase())
       )
     )
+    if (partialMatch) {
+      console.log(`Partial match found for ${countryName}: ${salesData[partialMatch].count}`)
+      return salesData[partialMatch].count
+    }
     
-    return matchingKey ? salesData[matchingKey].count : 0
+    return 0
   }
 
   return (
@@ -133,28 +207,33 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
                 const countryId = geo?.properties?.ISO_A3
                 const sales = getSalesForCountry(countryName || '', countryId || '')
                 
+                const fillColor = mode === 'choropleth' && sales > 0 
+                  ? getColorByCutoff(sales)
+                  : '#e2e8f0'
+                
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={
-                      mode === 'choropleth' && sales > 0
-                        ? colorScale(sales)
-                        : '#e2e8f0'
-                    }
+                    fill={fillColor}
                     stroke="#cbd5e0"
                     strokeWidth={0.5}
                     style={{
                       default: {
                         outline: 'none',
+                        fillOpacity: settings.opacity,
                       },
                       hover: {
-                        fill: mode === 'choropleth' && sales > 0 ? colorScale(sales * 1.2) : '#cbd5e0',
+                        fill: mode === 'choropleth' && sales > 0 
+                          ? getColorByCutoff(sales * 1.2) 
+                          : '#cbd5e0',
                         outline: 'none',
                         cursor: 'pointer',
+                        fillOpacity: Math.min(settings.opacity + 0.2, 1),
                       },
                       pressed: {
                         outline: 'none',
+                        fillOpacity: settings.opacity,
                       },
                     }}
                     title={`${countryName}: ${sales} sales`}
@@ -167,23 +246,37 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
         
         {mode === 'dots' &&
           Object.entries(salesData).map(([country, data]) => {
-            // For simplicity, we'll use some common coordinates
-            // In a real app, you'd want a proper country coordinate lookup
             const coordinates = getCountryCoordinates(country)
             if (!coordinates) return null
             
+            const size = sizeScale(data.count)
+            const color = getColorByCutoff(data.count)
+            
             return (
               <Marker key={country} coordinates={coordinates}>
-                <circle
-                  r={sizeScale(data.count)}
-                  fill="#3182ce"
-                  fillOpacity={0.7}
-                  stroke="#1a365d"
-                  strokeWidth={1}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <title>{`${country}: ${data.count} sales`}</title>
-                </circle>
+                {settings.dotStyle === 'emoji' ? (
+                  <text
+                    textAnchor="middle"
+                    y={size / 4}
+                    fontSize={size}
+                    style={{ cursor: 'pointer' }}
+                    opacity={settings.opacity}
+                  >
+                    {settings.dotEmoji}
+                    <title>{`${country}: ${data.count} sales`}</title>
+                  </text>
+                ) : (
+                  <circle
+                    r={size}
+                    fill={color}
+                    fillOpacity={settings.opacity}
+                    stroke={colorThemes[settings.colorTheme][1]}
+                    strokeWidth={1}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <title>{`${country}: ${data.count} sales`}</title>
+                  </circle>
+                )}
               </Marker>
             )
           })

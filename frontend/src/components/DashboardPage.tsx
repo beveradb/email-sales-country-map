@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import WorldMap from './WorldMap'
+import WorldMap, { type VisualizationSettings } from './WorldMap'
 import Stats from './Stats'
 import Controls from './Controls'
 import './DashboardPage.css'
@@ -19,6 +19,19 @@ export default function DashboardPage() {
   const [visualizationMode, setVisualizationMode] = useState<'choropleth' | 'dots'>('choropleth')
   const [debugData, setDebugData] = useState<unknown>(null)
   const [showDebug, setShowDebug] = useState(false)
+  const [visualizationSettings, setVisualizationSettings] = useState<VisualizationSettings>({
+    colorTheme: 'green',
+    dotStyle: 'circle',
+    dotEmoji: '💰',
+    dotSizeMultiplier: 1,
+    cutoffs: {
+      low: 1,
+      medium: 10,
+      high: 100,
+      veryHigh: 1000
+    },
+    opacity: 0.8
+  })
 
   const fetchSalesData = async (forceRefresh = false) => {
     setLoading(true)
@@ -119,6 +132,8 @@ export default function DashboardPage() {
           <Controls 
             mode={visualizationMode}
             onModeChange={setVisualizationMode}
+            settings={visualizationSettings}
+            onSettingsChange={setVisualizationSettings}
           />
         </div>
 
@@ -140,6 +155,7 @@ export default function DashboardPage() {
             <WorldMap 
               salesData={salesData}
               mode={visualizationMode}
+              settings={visualizationSettings}
             />
           </div>
           
