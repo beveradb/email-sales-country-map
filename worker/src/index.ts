@@ -124,45 +124,55 @@ async function ensureAccessToken(env: Env, session: any): Promise<string | null>
 }
 
 router.get('/api/debug', async (request: Request, env: Env) => {
-	const session = await getSession(request, env)
-	if (!session) return json({ error: 'not authenticated' }, 401)
-
-	const { accessToken } = session
-	const messageIds: string[] = []
-	const query = `subject:"You've Made a Sale!" OR subject:"Fwd: You've Made a Sale!"`
-	
-	// Get first page of messages for debugging
-	const listUrl = new URL(GMAIL_LIST_ENDPOINT)
-	listUrl.searchParams.set('q', query)
-	listUrl.searchParams.set('maxResults', '10')
-	
-	const res = await fetch(listUrl, { headers: { authorization: `Bearer ${accessToken}` } })
-	const listResult = await res.json() as any
-	
-	const debugInfo = {
-		searchQuery: query,
-		listResponse: listResult,
-		messageCount: listResult.messages?.length || 0,
-		resultOk: res.ok,
-		status: res.status
-	}
-	
-	// If we have messages, get details of the first one
-	if (listResult.messages?.length > 0) {
-		const firstMessageId = listResult.messages[0].id
-		const msgRes = await fetch(`${GMAIL_GET_ENDPOINT}/${firstMessageId}`, {
-			headers: { authorization: `Bearer ${accessToken}` }
-		})
-		const msgDetails = await msgRes.json()
-		debugInfo.firstMessage = {
-			id: firstMessageId,
-			subject: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'subject')?.value,
-			from: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'from')?.value,
-			snippet: msgDetails.snippet
+	try {
+		const session = await getSession(request, env)
+		const accessToken = await ensureAccessToken(env, session)
+		if (!accessToken) return json({ error: 'unauthorized' }, 401)
+		
+		const query = `subject:"You've Made a Sale!" OR subject:"Fwd: You've Made a Sale!"`
+		
+		// Get first page of messages for debugging
+		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
+		listUrl.searchParams.set('q', query)
+		listUrl.searchParams.set('maxResults', '10')
+		
+		const res = await fetch(listUrl, { headers: { authorization: `Bearer ${accessToken}` } })
+		const listResult = await res.json() as any
+		
+		const debugInfo: any = {
+			searchQuery: query,
+			listResponse: listResult,
+			messageCount: listResult.messages?.length || 0,
+			resultOk: res.ok,
+			status: res.status
 		}
+		
+		// If we have messages, get details of the first one
+		if (listResult.messages?.length > 0) {
+			try {
+				const firstMessageId = listResult.messages[0].id
+				const msgRes = await fetch(`${GMAIL_GET_ENDPOINT}/${firstMessageId}`, {
+					headers: { authorization: `Bearer ${accessToken}` }
+				})
+				const msgDetails = await msgRes.json()
+				debugInfo.firstMessage = {
+					id: firstMessageId,
+					subject: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'subject')?.value,
+					from: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'from')?.value,
+					snippet: msgDetails.snippet
+				}
+			} catch (err) {
+				debugInfo.messageError = err instanceof Error ? err.message : 'Failed to fetch message details'
+			}
+		}
+		
+		return json(debugInfo)
+	} catch (error) {
+		return json({ 
+			error: 'Debug endpoint failed', 
+			details: error instanceof Error ? error.message : 'Unknown error' 
+		}, 500)
 	}
-	
-	return json(debugInfo)
 })
 
 router.get('/api/sales-data', async (request: Request, env: Env) => {
@@ -176,7 +186,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	let nextPageToken: string | undefined
 	const messageIds: string[] = []
-	const query = `subject:"You've made a sale" OR subject:"Fwd: You've Made a Sale!"`
+	const query = `subject:"You've Made a Sale!" OR subject:"Fwd: You've Made a Sale!"`
 	while (true) {
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
 		listUrl.searchParams.set('q', query)
