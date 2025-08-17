@@ -37,4 +37,5 @@ coverage/
 
 # Functional
 example-emails
+client_secret_*
 
