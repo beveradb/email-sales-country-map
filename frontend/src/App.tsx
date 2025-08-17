@@ -31,12 +31,12 @@ function App() {
       <div className="app">
         <Routes>
           <Route 
-            path="/login" 
+            path="/" 
             element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} 
           />
           <Route 
             path="/dashboard" 
-            element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} 
+            element={isAuthenticated ? <DashboardPage /> : <Navigate to="/" />} 
           />
           <Route 
             path="/privacy" 
@@ -46,9 +46,10 @@ function App() {
             path="/tos" 
             element={<TermsOfService />} 
           />
+          {/* Legacy redirect for any existing /login bookmarks */}
           <Route 
-            path="/" 
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} 
+            path="/login" 
+            element={<Navigate to="/" />} 
           />
         </Routes>
       </div>
