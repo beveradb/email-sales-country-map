@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useState, useEffect } from 'react'
 import LoginPage from './components/LoginPage'
 import DashboardPage from './components/DashboardPage'
+import PrivacyPolicy from './components/PrivacyPolicy'
+import TermsOfService from './components/TermsOfService'
 import './App.css'
 
 function App() {
@@ -35,6 +37,14 @@ function App() {
           <Route 
             path="/dashboard" 
             element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/privacy" 
+            element={<PrivacyPolicy />} 
+          />
+          <Route 
+            path="/tos" 
+            element={<TermsOfService />} 
           />
           <Route 
             path="/" 

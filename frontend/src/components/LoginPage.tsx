@@ -38,6 +38,10 @@ export default function LoginPage() {
             We only read emails from clips4sale with "You've made a sale" subject lines. 
             Your data is processed securely and never stored permanently.
           </p>
+          <div className="legal-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/tos">Terms of Service</a>
+          </div>
         </div>
       </div>
     </div>

@@ -85,5 +85,24 @@
   font-size: 0.85rem;
   color: #666;
   line-height: 1.4;
-  margin: 0;
+  margin: 0 0 1rem 0;
+}
+
+.legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.legal-links a {
+  font-size: 0.8rem;
+  color: #3182ce;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legal-links a:hover {
+  color: #2c5282;
+  text-decoration: underline;
 }
