@@ -2,16 +2,18 @@ name = "sales-mapper-worker"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
 
-# If you want a custom subdomain route, we will add it later once you provide zone/subdomain
-# routes = [ { pattern = "your-sub.example.com/*", zone_id = "YOUR_ZONE_ID" } ]
+# Custom domain route for emailsalesmap.beveradb.com
+# Note: You'll need to add this route in the Cloudflare dashboard or via API
+# routes = [ { pattern = "emailsalesmap.beveradb.com/api/*" } ]
 
+# KV namespaces
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "" # to be filled by CI or after `wrangler kv:namespace create SESSIONS`
+id = "7d3aad65a5264397b9850faa2c3ae66b"
 
 [[kv_namespaces]]
 binding = "SALES_CACHE"
-id = "" # to be filled by CI or after `wrangler kv:namespace create SALES_CACHE`
+id = "7d67a6d777ad4507817606869fbdb06c"
 
 [vars]
 # no plaintext secrets here; use wrangler secret
