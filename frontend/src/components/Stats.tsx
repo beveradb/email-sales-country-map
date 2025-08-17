@@ -1,4 +1,4 @@
-import { SalesData } from './DashboardPage'
+import type { SalesData } from './DashboardPage'
 import './Stats.css'
 
 interface StatsProps {

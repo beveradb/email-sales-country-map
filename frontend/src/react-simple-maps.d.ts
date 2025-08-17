@@ -1,0 +1,51 @@
+declare module 'react-simple-maps' {
+  import { ReactElement, ReactNode } from 'react'
+
+  export interface ComposableMapProps {
+    projection?: string
+    projectionConfig?: {
+      scale?: number
+      center?: [number, number]
+    }
+    children?: ReactNode
+  }
+
+  export interface GeographiesProps {
+    geography: string
+    children: (props: { geographies: Geography[] }) => ReactElement
+  }
+
+  export interface GeographyProps {
+    key?: string
+    geography: Geography
+    fill?: string
+    stroke?: string
+    strokeWidth?: number
+    style?: {
+      default?: React.CSSProperties
+      hover?: React.CSSProperties
+      pressed?: React.CSSProperties
+    }
+    title?: string
+  }
+
+  export interface MarkerProps {
+    coordinates: [number, number]
+    children?: ReactNode
+  }
+
+  export interface Geography {
+    rsmKey: string
+    properties: {
+      NAME: string
+      ISO_A3: string
+      [key: string]: any
+    }
+    [key: string]: any
+  }
+
+  export const ComposableMap: React.FC<ComposableMapProps>
+  export const Geographies: React.FC<GeographiesProps>
+  export const Geography: React.FC<GeographyProps>
+  export const Marker: React.FC<MarkerProps>
+}

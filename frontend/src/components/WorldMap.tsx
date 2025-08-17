@@ -1,6 +1,6 @@
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 import { scaleLinear } from 'd3-scale'
-import { SalesData } from './DashboardPage'
+import type { SalesData } from './DashboardPage'
 import './WorldMap.css'
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json"
@@ -109,41 +109,43 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
         }}
       >
         <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies.map((geo) => {
-              const countryName = geo.properties.NAME
-              const countryId = geo.properties.ISO_A3
-              const sales = getSalesForCountry(countryName, countryId)
-              
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={
-                    mode === 'choropleth' && sales > 0
-                      ? colorScale(sales)
-                      : '#e2e8f0'
-                  }
-                  stroke="#cbd5e0"
-                  strokeWidth={0.5}
-                  style={{
-                    default: {
-                      outline: 'none',
-                    },
-                    hover: {
-                      fill: mode === 'choropleth' && sales > 0 ? colorScale(sales * 1.2) : '#cbd5e0',
-                      outline: 'none',
-                      cursor: 'pointer',
-                    },
-                    pressed: {
-                      outline: 'none',
-                    },
-                  }}
-                  title={`${countryName}: ${sales} sales`}
-                />
-              )
-            })
-          }
+          {({ geographies }: { geographies: any[] }) => (
+            <>
+              {geographies.map((geo: any) => {
+                const countryName = geo.properties.NAME
+                const countryId = geo.properties.ISO_A3
+                const sales = getSalesForCountry(countryName, countryId)
+                
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={
+                      mode === 'choropleth' && sales > 0
+                        ? colorScale(sales)
+                        : '#e2e8f0'
+                    }
+                    stroke="#cbd5e0"
+                    strokeWidth={0.5}
+                    style={{
+                      default: {
+                        outline: 'none',
+                      },
+                      hover: {
+                        fill: mode === 'choropleth' && sales > 0 ? colorScale(sales * 1.2) : '#cbd5e0',
+                        outline: 'none',
+                        cursor: 'pointer',
+                      },
+                      pressed: {
+                        outline: 'none',
+                      },
+                    }}
+                    title={`${countryName}: ${sales} sales`}
+                  />
+                )
+              })}
+            </>
+          )}
         </Geographies>
         
         {mode === 'dots' &&
