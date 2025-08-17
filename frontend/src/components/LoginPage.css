@@ -4,6 +4,12 @@
   padding: 2rem 0;
 }
 
+.login-page *,
+.login-page *::before,
+.login-page *::after {
+  box-sizing: border-box;
+}
+
 .login-container {
   background: white;
   border-radius: 12px;
@@ -13,6 +19,7 @@
   margin: 0 auto;
   padding: 4rem;
   line-height: 1.6;
+  box-sizing: border-box;
 }
 
 /* Header Section */
@@ -521,6 +528,9 @@
   padding: 24px;
   margin: 24px 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .template-selector {
@@ -546,6 +556,7 @@
   font-family: inherit;
   transition: all 0.2s ease;
   color: #000;
+  box-sizing: border-box;
 }
 
 .template-dropdown:focus {
@@ -566,6 +577,8 @@
   padding: 16px;
   margin-top: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .template-info-inline p {
@@ -665,6 +678,9 @@
   padding: 20px;
   margin-top: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .help-content {
@@ -731,11 +747,89 @@
 
 /* Mobile adjustments */
 @media (max-width: 767px) {
+  .login-page {
+    padding: 1rem 0;
+  }
+  
+  .login-container {
+    width: 95%;
+    padding: 2rem 1.5rem;
+    margin: 0.5rem auto;
+  }
+  
   .template-selection-inline {
-    padding: 15px;
+    padding: 16px;
+    margin: 16px 0;
+  }
+  
+  .template-dropdown {
+    max-width: 100%;
   }
   
   .custom-input {
     font-size: 16px; /* Prevent zoom on iOS */
+    padding: 10px 14px;
+  }
+  
+  .custom-fields {
+    gap: 16px;
+  }
+  
+  .help-content {
+    gap: 16px;
+  }
+  
+  .custom-help-inline {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    width: 98%;
+    padding: 1.5rem 1rem;
+  }
+  
+  .template-selection-inline {
+    padding: 12px;
+    margin: 12px 0;
+  }
+  
+  .login-header h1 {
+    font-size: 2rem;
+  }
+  
+  .tagline {
+    font-size: 1rem;
+  }
+  
+  .template-dropdown {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+  
+  .custom-input {
+    padding: 8px 12px;
+    font-size: 16px;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .login-page {
+    padding: 0.5rem 0;
+  }
+  
+  .login-container {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    padding: 1rem 0.75rem;
+  }
+  
+  .template-selection-inline {
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 8px;
   }
 }

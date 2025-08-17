@@ -4,12 +4,15 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .world-map svg {
   width: 100%;
   height: 400px;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Tooltip styles for better UX */
@@ -19,6 +22,21 @@
 
 @media (max-width: 768px) {
   .world-map svg {
+    height: 300px;
     max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .world-map svg {
+    height: 250px;
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 360px) {
+  .world-map svg {
+    height: 200px;
+    max-height: 200px;
   }
 }
