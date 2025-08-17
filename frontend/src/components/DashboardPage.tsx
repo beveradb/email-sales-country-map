@@ -92,7 +92,7 @@ export default function DashboardPage() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>Sales Mapper</h1>
+          <h1>Email Sales Map</h1>
           <div className="header-actions">
             <button onClick={handleRefresh} className="refresh-button">
               🔄 Refresh Data

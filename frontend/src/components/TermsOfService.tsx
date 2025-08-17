@@ -10,7 +10,7 @@ export default function TermsOfService() {
         <section>
           <h2>1. Acceptance of Terms</h2>
           <p>
-            By accessing and using Sales Mapper ("the Service"), you accept and agree to be bound by the terms 
+            By accessing and using Email Sales Map ("the Service"), you accept and agree to be bound by the terms 
             and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
           </p>
         </section>
@@ -18,7 +18,7 @@ export default function TermsOfService() {
         <section>
           <h2>2. Description of Service</h2>
           <p>
-            Sales Mapper is a data visualization tool that:
+            Email Sales Map is a data visualization tool that:
           </p>
           <ul>
             <li>Authenticates users through Google OAuth</li>
@@ -40,7 +40,7 @@ export default function TermsOfService() {
 
         <section>
           <h2>4. Permitted Use</h2>
-          <p>You may use Sales Mapper to:</p>
+          <p>You may use Email Sales Map to:</p>
           <ul>
             <li>Visualize your own sales data from clips4sale.com</li>
             <li>View aggregated country statistics from your sales</li>
@@ -63,7 +63,7 @@ export default function TermsOfService() {
         <section>
           <h2>6. Data and Privacy</h2>
           <p>
-            Your use of Sales Mapper is also governed by our Privacy Policy. By using the service, 
+            Your use of Email Sales Map is also governed by our Privacy Policy. By using the service, 
             you consent to the collection and use of information as outlined in our Privacy Policy.
           </p>
         </section>
@@ -71,7 +71,7 @@ export default function TermsOfService() {
         <section>
           <h2>7. Intellectual Property</h2>
           <p>
-            The Sales Mapper application, including its design, code, and functionality, is owned by 
+            The Email Sales Map application, including its design, code, and functionality, is owned by 
             the developer. You are granted a limited, non-exclusive license to use the service.
           </p>
         </section>
@@ -88,7 +88,7 @@ export default function TermsOfService() {
         <section>
           <h2>9. Limitation of Liability</h2>
           <p>
-            Sales Mapper is provided "as is" without warranties of any kind. We are not liable for:
+            Email Sales Map is provided "as is" without warranties of any kind. We are not liable for:
           </p>
           <ul>
             <li>Any direct, indirect, incidental, or consequential damages</li>
@@ -102,7 +102,7 @@ export default function TermsOfService() {
           <h2>10. Google API Compliance</h2>
           <p>
             This service uses Google APIs and complies with Google's API Services User Data Policy. 
-            By using Sales Mapper, you acknowledge that your use is subject to Google's terms and policies.
+            By using Email Sales Map, you acknowledge that your use is subject to Google's terms and policies.
           </p>
         </section>
 
@@ -157,7 +157,7 @@ export default function TermsOfService() {
         </section>
 
         <div className="legal-footer">
-          <a href="/">← Back to Sales Mapper</a>
+          <a href="/">← Back to Email Sales Map</a>
           <a href="/privacy">Privacy Policy</a>
         </div>
       </div>

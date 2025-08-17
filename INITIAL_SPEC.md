@@ -2,7 +2,7 @@ Based on the transcript, I've identified the core requirements for your app. It'
 
 Here is a comprehensive plan to build this application as a static site with a backend powered by Cloudflare Workers.
 
-### **Project Overview: "Sales Mapper"**
+### **Project Overview: "Email Sales Map"**
 
 The application will be a Single Page Application (SPA). The "static site" part (HTML, CSS, JavaScript) will be served by Cloudflare Pages, and the dynamic backend logic (Google OAuth, Gmail API interaction) will be handled by a Cloudflare Worker.
 

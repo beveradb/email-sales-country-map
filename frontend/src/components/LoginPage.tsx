@@ -9,8 +9,8 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1>Sales Mapper</h1>
-          <p>Visualize your global sales data from Gmail</p>
+          <h1>Email Sales Map</h1>
+          <p>Visualize your global sales data (currently only from clips4sale) from Gmail</p>
         </div>
         <div className="login-content">
           <div className="login-description">

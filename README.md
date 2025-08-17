@@ -1,4 +1,4 @@
-# Sales Mapper
+# Email Sales Map
 
 Data visualization tool that authenticates with Google, reads specific emails from Gmail, aggregates country data, and displays it on an interactive world map.
 

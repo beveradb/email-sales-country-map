@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2>1. Information We Collect</h2>
           <p>
-            Sales Mapper ("we," "our," or "us") collects the following information when you use our service:
+            Email Sales Map ("we," "our," or "us") collects the following information when you use our service:
           </p>
           <ul>
             <li><strong>Google Account Information:</strong> Your email address and basic profile information through Google OAuth</li>
@@ -114,7 +114,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <div className="legal-footer">
-          <a href="/">← Back to Sales Mapper</a>
+          <a href="/">← Back to Email Sales Map</a>
           <a href="/tos">Terms of Service</a>
         </div>
       </div>

@@ -1,4 +1,4 @@
-# 🚀 Sales Mapper Deployment Guide
+# 🚀 Email Sales Map Deployment Guide
 
 ## Current Issue: API Token Authentication
 
