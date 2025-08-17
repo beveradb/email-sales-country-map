@@ -1,0 +1,75 @@
+.controls {
+  margin-bottom: 2rem;
+}
+
+.controls-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.controls-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+}
+
+.mode-toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.mode-button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.mode-button:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.mode-button.active {
+  border-color: #3182ce;
+  background: #ebf8ff;
+}
+
+.mode-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.mode-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mode-title {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 1rem;
+}
+
+.mode-description {
+  font-size: 0.875rem;
+  color: #718096;
+  line-height: 1.3;
+}
+
+@media (max-width: 640px) {
+  .mode-toggles {
+    grid-template-columns: 1fr;
+  }
+}

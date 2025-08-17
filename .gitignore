@@ -1,0 +1,40 @@
+# Node
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Builds
+frontend/dist/
+frontend/.vite/
+worker/dist/
+
+# Env
+.env
+.env.*
+worker/.dev.vars
+
+# Mac
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+logs
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+
+# Misc
+*.local
+
+# Functional
+example-emails
+

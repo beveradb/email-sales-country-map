@@ -1,0 +1,125 @@
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+}
+
+.stats-card h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 0 0 0.5rem 0;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.metric-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3182ce;
+  line-height: 1;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #718096;
+  margin-top: 0.25rem;
+}
+
+.best-worst {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.country-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.country-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.country-value {
+  font-weight: 600;
+  color: #3182ce;
+}
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.leaderboard-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.leaderboard-item:hover {
+  background: #edf2f7;
+}
+
+.rank {
+  font-weight: 600;
+  color: #718096;
+  min-width: 2rem;
+}
+
+.country {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.sales {
+  font-weight: 600;
+  color: #3182ce;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .best-worst {
+    grid-template-columns: 1fr;
+  }
+}
