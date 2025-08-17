@@ -3,6 +3,19 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+// Type declarations for diagnostic functions added to window
+declare global {
+  interface Window {
+    updateLoadingStatus?: (message: string) => void;
+    loadingErrors?: Array<{
+      type: string;
+      message?: string;
+      stack?: string;
+      timestamp: number;
+    }>;
+  }
+}
+
 // Enhanced error handling and loading feedback
 try {
   // Update loading status
@@ -29,19 +42,22 @@ try {
     window.updateLoadingStatus('Application rendered successfully');
   }
   
-} catch (error) {
+} catch (error: unknown) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  
   console.error('🚨 Failed to initialize React app:', error);
   
   if (window.updateLoadingStatus) {
-    window.updateLoadingStatus('Failed to initialize: ' + error.message);
+    window.updateLoadingStatus('Failed to initialize: ' + errorMessage);
   }
   
   // Add error to global tracking
   if (window.loadingErrors) {
     window.loadingErrors.push({
       type: 'react_init_error',
-      message: error.message,
-      stack: error.stack,
+      message: errorMessage,
+      stack: errorStack,
       timestamp: Date.now()
     });
   }
