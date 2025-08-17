@@ -18,8 +18,8 @@
 /* Header Section */
 .login-header {
   text-align: center;
-  margin-bottom: 4rem;
-  padding-bottom: 2rem;
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -46,41 +46,28 @@
 
 .tagline {
   color: #4a5568;
-  font-size: 1.3rem;
-  margin: 0.5rem 0 0 0;
+  font-size: 1.2rem;
+  margin: 1rem auto 0 auto;
   font-weight: 400;
+  max-width: 700px;
+  line-height: 1.5;
 }
 
 /* App Overview Section */
 .app-overview {
-  margin-bottom: 4rem;
-}
-
-.app-overview h2 {
-  font-size: 2rem;
-  color: #1a202c;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.overview-description {
-  font-size: 1.1rem;
-  color: #4a5568;
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 3rem auto;
+  margin-bottom: 3rem;
 }
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 0;
 }
 
 .feature-item {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
   border-radius: 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -93,13 +80,13 @@
 }
 
 .feature-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .feature-item h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #1a202c;
   margin-bottom: 0.5rem;
   font-weight: 600;
@@ -107,8 +94,30 @@
 
 .feature-item p {
   color: #4a5568;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
+  line-height: 1.4;
+}
+
+/* Quick Login Section */
+.quick-login-section {
+  margin-bottom: 3rem;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  border-radius: 12px;
+}
+
+.quick-login-section h2 {
+  font-size: 1.8rem;
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+.quick-login-section > p {
+  color: #4a5568;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
 }
 
 /* Data Usage Explanation */
@@ -407,8 +416,20 @@
   }
   
   .features-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+  }
+  
+  .quick-login-section {
+    padding: 2rem 1.5rem;
+  }
+  
+  .quick-login-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .quick-login-section > p {
+    font-size: 1rem;
   }
   
   .step {
@@ -427,5 +448,23 @@
   
   .legal-links span {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-login-section {
+    padding: 1.5rem 1rem;
+  }
+  
+  .quick-login-section h2 {
+    font-size: 1.3rem;
+  }
+  
+  .quick-login-section > p {
+    font-size: 0.95rem;
   }
 }
