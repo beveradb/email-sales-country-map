@@ -4,8 +4,8 @@ compatibility_date = "2024-09-23"
 account_id = "a7dd2a2bee7151ef4dc7a9f53d99b520"
 
 # Custom domain route for mailsalesmap.org
-# Note: Using zone_name instead of zone_id (beveradb.com is your zone)
-routes = [ { pattern = "mailsalesmap.org/api/*", zone_name = "beveradb.com" } ]
+# Note: Using zone_name instead of zone_id (mailsalesmap.org is your zone)
+routes = [ { pattern = "mailsalesmap.org/api/*", zone_name = "mailsalesmap.org" } ]
 
 # Enable logging
 [observability]

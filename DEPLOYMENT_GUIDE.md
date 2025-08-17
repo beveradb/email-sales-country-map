@@ -25,7 +25,7 @@ Account Resources:
 - Include: a7dd2a2bee7151ef4dc7a9f53d99b520
 
 Zone Resources:  
-- Include: beveradb.com
+- Include: mailsalesmap.org
 ```
 
 5. **Copy the token** (it should be 40+ characters long)
