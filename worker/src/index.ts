@@ -78,6 +78,97 @@ router.get('/api/health', async (request: Request, env: Env) => {
 	return json({ ok: true, authenticated: !!session })
 })
 
+// Diagnostic endpoint for JavaScript loading issues
+router.post('/api/diagnostics', async (request: Request, env: Env) => {
+	try {
+		const diagnostics = await request.json() as {
+			userAgent: string
+			loadTime: number
+			errors: Array<{
+				type: string
+				message?: string
+				filename?: string
+				reason?: string
+				timestamp: number
+			}>
+			rootChildren: number
+			jsEnabled: boolean
+			timestamp: string
+			url: string
+			referrer: string
+		}
+		
+		// Log diagnostic data for debugging
+		console.log('🔍 Frontend Diagnostic Report:', {
+			userAgent: diagnostics.userAgent,
+			loadTime: diagnostics.loadTime,
+			errorCount: diagnostics.errors.length,
+			errors: diagnostics.errors,
+			url: diagnostics.url,
+			timestamp: diagnostics.timestamp
+		})
+		
+		// Store diagnostic data in KV for analysis (optional, expires after 24 hours)
+		try {
+			const diagnosticKey = `diagnostic:${Date.now()}:${Math.random().toString(36).substr(2, 9)}`
+			await env.SALES_CACHE.put(diagnosticKey, JSON.stringify(diagnostics), { expirationTtl: 86400 })
+		} catch (kvError) {
+			console.warn('Could not store diagnostic data in KV:', kvError)
+		}
+		
+		return json({ received: true, timestamp: new Date().toISOString() })
+	} catch (error) {
+		console.error('Error processing diagnostic data:', error)
+		return json({ error: 'Failed to process diagnostic data' }, 400)
+	}
+})
+
+// Diagnostic retrieval endpoint for debugging (admin only)
+router.get('/api/diagnostics', async (request: Request, env: Env) => {
+	try {
+		// List recent diagnostic reports
+		const diagnosticKeys: string[] = []
+		const listResult = await env.SALES_CACHE.list({ prefix: 'diagnostic:' })
+		
+		const reports = await Promise.all(
+			listResult.keys.slice(0, 20).map(async (key) => {
+				try {
+					const data = await env.SALES_CACHE.get(key.name)
+					return data ? JSON.parse(data) : null
+				} catch (e) {
+					return null
+				}
+			})
+		)
+		
+		const validReports = reports.filter(Boolean)
+		
+		return json({ 
+			count: validReports.length,
+			reports: validReports,
+			summary: {
+				totalErrors: validReports.reduce((sum, r) => sum + r.errors.length, 0),
+				avgLoadTime: validReports.length > 0 ? validReports.reduce((sum, r) => sum + r.loadTime, 0) / validReports.length : 0,
+				commonErrors: getCommonErrors(validReports)
+			}
+		})
+	} catch (error) {
+		console.error('Error retrieving diagnostic data:', error)
+		return json({ error: 'Failed to retrieve diagnostic data' }, 500)
+	}
+})
+
+function getCommonErrors(reports: any[]): Record<string, number> {
+	const errorCounts: Record<string, number> = {}
+	reports.forEach(report => {
+		report.errors.forEach((error: any) => {
+			const key = error.type || 'unknown'
+			errorCounts[key] = (errorCounts[key] || 0) + 1
+		})
+	})
+	return errorCounts
+}
+
 router.get('/api/auth/logout', async (request: Request, env: Env) => {
 	const cookieHeader = request.headers.get('cookie') || ''
 	const cookies = parseCookie(cookieHeader)
