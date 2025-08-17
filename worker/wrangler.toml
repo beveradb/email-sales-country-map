@@ -4,8 +4,11 @@ compatibility_date = "2024-09-23"
 account_id = "a7dd2a2bee7151ef4dc7a9f53d99b520"
 
 # Custom domain route for emailsalesmap.beveradb.com
-# Note: You'll need to add this route in the Cloudflare dashboard or via API
-# routes = [ { pattern = "emailsalesmap.beveradb.com/api/*" } ]
+routes = [ { pattern = "emailsalesmap.beveradb.com/api/*" } ]
+
+# Enable logging
+[observability]
+enabled = true
 
 # KV namespaces
 [[kv_namespaces]]

@@ -184,7 +184,16 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 	return new Response(body, { headers: { 'content-type': 'application/json; charset=utf-8' } })
 })
 
-router.all('*', () => new Response('Not Found', { status: 404 }))
+// Fallback for non-API routes - redirect to Pages
+router.all('*', (request: Request) => {
+  const url = new URL(request.url)
+  // If it's not an API route, this shouldn't be handled by the worker
+  if (!url.pathname.startsWith('/api/')) {
+    // Return a response that lets Cloudflare fall through to Pages
+    return new Response(null, { status: 404 })
+  }
+  return new Response('API endpoint not found', { status: 404 })
+})
 
 export default {
 	fetch: (request: Request, env: Env) => router.handle(request, env),
