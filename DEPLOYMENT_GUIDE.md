@@ -39,7 +39,7 @@ CLOUDFLARE_API_TOKEN=YOUR_NEW_TOKEN_HERE
 ```
 
 ### GitHub Secrets:
-Go to: https://github.com/beveradb/email-sales-country-map/settings/secrets/actions
+Go to: https://github.com/beveradb/mailsalesmap/settings/secrets/actions
 
 Update:
 - `CLOUDFLARE_API_TOKEN` = your new token
@@ -50,9 +50,9 @@ Update:
 1. Go to [Cloudflare Dashboard → Pages](https://dash.cloudflare.com/pages)
 2. Click **"Create application"**
 3. Choose **"Connect to Git"**
-4. Select your GitHub repo: `beveradb/email-sales-country-map`
+4. Select your GitHub repo: `beveradb/mailsalesmap`
 5. Configure:
-   - **Project name**: `emailsalesmap`
+   - **Project name**: `mailsalesmap`
    - **Production branch**: `main`
    - **Build command**: `npm run build`
    - **Build output directory**: `dist`
@@ -74,7 +74,7 @@ After updating the API token:
    git push
    ```
 
-2. Monitor the Actions at: https://github.com/beveradb/email-sales-country-map/actions
+2. Monitor the Actions at: https://github.com/beveradb/mailsalesmap/actions
 
 3. Both workflows should succeed:
    - ✅ **Deploy Worker** - handles `/api/*` endpoints
