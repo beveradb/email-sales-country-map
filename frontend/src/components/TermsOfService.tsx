@@ -27,7 +27,7 @@ export default function TermsOfService() {
           </p>
           <ul>
             <li>Authenticates users through Google OAuth</li>
-            <li>Reads specific emails from clips4sale.com in your Gmail account</li>
+            <li>Reads emails matching your configured criteria in your Gmail account</li>
             <li>Extracts country information from sales notification emails</li>
             <li>Displays aggregated sales data on an interactive world map</li>
           </ul>
@@ -47,7 +47,7 @@ export default function TermsOfService() {
           <h2>4. Permitted Use</h2>
           <p>You may use Email Sales Map to:</p>
           <ul>
-            <li>Visualize your own sales data from clips4sale.com</li>
+            <li>Visualize your own sales data from any supported platform</li>
             <li>View aggregated country statistics from your sales</li>
             <li>Export or share anonymized visualizations</li>
           </ul>

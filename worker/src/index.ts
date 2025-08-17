@@ -6,12 +6,54 @@ interface Env {
 	SALES_CACHE: KVNamespace
 }
 
+interface EmailTemplate {
+	id: string
+	name: string
+	description: string
+	subjectQuery: string
+	countryRegex: string
+	exampleEmail?: {
+		subject: string
+		bodySnippet: string
+		countryMatch: string
+	}
+	instructions?: string
+}
+
+// Default template (Clips4Sale) if none provided
+const DEFAULT_TEMPLATE: EmailTemplate = {
+	id: 'clips4sale',
+	name: 'Clips4Sale',
+	description: 'Sales notification emails from Clips4Sale platform',
+	subjectQuery: 'subject:"You\'ve Made a Sale!" OR subject:"Fwd: You\'ve Made a Sale!"',
+	countryRegex: 'Country from IP:\\s*(?:<[^>]*>)?\\s*([^<\\n\\r]+)'
+}
+
 const router = Router()
 
 function json(data: unknown, init: number | ResponseInit = 200): Response {
 	const status = typeof init === 'number' ? init : (init as ResponseInit).status ?? 200
 	const headers: HeadersInit = { 'content-type': 'application/json; charset=utf-8', ...(typeof init === 'number' ? {} : (init as ResponseInit).headers) }
 	return new Response(JSON.stringify(data), { status, headers })
+}
+
+function getTemplateFromRequest(request: Request): EmailTemplate {
+	const url = new URL(request.url)
+	const templateParam = url.searchParams.get('template')
+	
+	if (templateParam) {
+		try {
+			const parsed = JSON.parse(templateParam) as EmailTemplate
+			// Validate that required fields exist
+			if (parsed.subjectQuery && parsed.countryRegex) {
+				return parsed
+			}
+		} catch (e) {
+			console.warn('Failed to parse template parameter:', e)
+		}
+	}
+	
+	return DEFAULT_TEMPLATE
 }
 
 const GOOGLE_OAUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -53,6 +95,10 @@ router.get('/api/auth/login', (request: Request, env: Env) => {
 	const clientId = (env as unknown as Record<string, string>).GOOGLE_CLIENT_ID
 	if (!clientId) return json({ error: 'server not configured' }, 500)
 	
+	// Extract template from request and encode it in state parameter
+	const template = getTemplateFromRequest(request)
+	const state = encodeURIComponent(JSON.stringify({ template }))
+	
 	const redirectUri = getRedirectUri(request)
 	const params = new URLSearchParams({
 		client_id: clientId,
@@ -61,6 +107,7 @@ router.get('/api/auth/login', (request: Request, env: Env) => {
 		scope: 'openid email https://www.googleapis.com/auth/gmail.readonly',
 		access_type: 'offline',
 		prompt: 'consent',
+		state: state
 	})
 	return Response.redirect(`${GOOGLE_OAUTH_ENDPOINT}?${params.toString()}`, 302)
 })
@@ -68,7 +115,21 @@ router.get('/api/auth/login', (request: Request, env: Env) => {
 router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	const url = new URL(request.url)
 	const code = url.searchParams.get('code')
+	const state = url.searchParams.get('state')
 	if (!code) return json({ error: 'missing code' }, 400)
+
+	// Extract template from state parameter
+	let template = DEFAULT_TEMPLATE
+	if (state) {
+		try {
+			const stateData = JSON.parse(decodeURIComponent(state))
+			if (stateData.template && stateData.template.subjectQuery && stateData.template.countryRegex) {
+				template = stateData.template
+			}
+		} catch (e) {
+			console.warn('Failed to parse state parameter:', e)
+		}
+	}
 
 	// For the callback, we need to use the same redirect_uri that was used in the initial OAuth request
 	// In local development, this should always be localhost:8787
@@ -115,7 +176,7 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	const refreshToken = tokenJson.refresh_token as string | undefined
 
 	const sessionId = crypto.randomUUID()
-	const sessionData = { accessToken, refreshToken, createdAt: Date.now() }
+	const sessionData = { accessToken, refreshToken, createdAt: Date.now(), template }
 	await env.SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 60 * 60 * 24 * 7 })
 
 	const cookie = serializeCookie('sid', sessionId, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
@@ -162,7 +223,11 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 		const accessToken = await ensureAccessToken(env, session)
 		if (!accessToken) return json({ error: 'unauthorized' }, 401)
 		
-		const query = `subject:"You've Made a Sale!" OR subject:"Fwd: You've Made a Sale!"`
+		// Get template from session or request parameter, fallback to default
+		let template = session?.template || getTemplateFromRequest(request)
+		if (!template) template = DEFAULT_TEMPLATE
+		
+		const query = template.subjectQuery
 		
 		// Get first page of messages for debugging
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
@@ -181,6 +246,7 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 		const listResult = await res.json() as any
 		
 		const debugInfo: any = {
+			template: template,
 			searchQuery: query,
 			listResponse: listResult,
 			messageCount: Array.isArray(listResult.messages) ? listResult.messages.length : 0,
@@ -224,8 +290,9 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 				}
 				const emailText = bodyParts.join('\n')
 				
-				// Test the country parsing regex
-				const countryMatch = emailText.match(/Country from IP:\s*(?:<[^>]*>)?\s*([^<\n\r]+)/i)
+				// Test the country parsing regex from the template
+				const countryRegex = new RegExp(template.countryRegex, 'i')
+				const countryMatch = emailText.match(countryRegex)
 				const countryFound = countryMatch ? countryMatch[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '') : null
 				
 				debugInfo.firstMessage = {
@@ -257,13 +324,17 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 	const accessToken = await ensureAccessToken(env, session)
 	if (!accessToken) return json({ error: 'unauthorized' }, 401)
 
-	const cacheKey = `sales:${session.createdAt}` // simple per-session cache key; can include user id later
+	// Get template from session or request parameter, fallback to default
+	let template = session?.template || getTemplateFromRequest(request)
+	if (!template) template = DEFAULT_TEMPLATE
+
+	const cacheKey = `sales:${session.createdAt}:${template.id}` // include template id in cache key
 	const cached = await env.SALES_CACHE.get(cacheKey)
 	if (cached) return new Response(cached, { headers: { 'content-type': 'application/json; charset=utf-8' } })
 
 	let nextPageToken: string | undefined
 	const messageIds: string[] = []
-	const query = `subject:"You've Made a Sale!" OR subject:"Fwd: You've Made a Sale!"`
+	const query = template.subjectQuery
 	while (true) {
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
 		listUrl.searchParams.set('q', query)
@@ -310,11 +381,12 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 			}
 			collect(msg.payload)
 			const text = bodyParts.join('\n')
-			// More robust regex to handle various formats and HTML entities
-			const match = text.match(/Country from IP:\s*(?:<[^>]*>)?\s*([^<\n\r]+)/i)
+			// Use the template's regex pattern to extract country information
+			const countryRegex = new RegExp(template.countryRegex, 'i')
+			const match = text.match(countryRegex)
 			if (match) {
 				const country = match[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '')
-				if (country && country !== 'IP:') {
+				if (country && country !== 'IP:' && country.length > 0) {
 					counts[country] = (counts[country] || 0) + 1
 					
 					// Extract timestamp from email (use internalDate which is the received timestamp)

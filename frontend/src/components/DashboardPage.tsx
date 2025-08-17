@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import WorldMap, { type VisualizationSettings } from './WorldMap'
 import Stats from './Stats'
 import Controls from './Controls'
+import { type EmailTemplate, getDefaultTemplate } from '../config/emailTemplates'
 import './DashboardPage.css'
 
 export interface SalesData {
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [debugData, setDebugData] = useState<unknown>(null)
   const [showDebug, setShowDebug] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [template, setTemplate] = useState<EmailTemplate | null>(null)
   const [visualizationSettings, setVisualizationSettings] = useState<VisualizationSettings>({
     colorTheme: 'green',
     dotStyle: 'circle',
@@ -39,7 +41,11 @@ export default function DashboardPage() {
     setError(null)
     
     try {
-      const url = forceRefresh ? '/api/sales-data?refresh=true' : '/api/sales-data'
+      const searchParams = new URLSearchParams()
+      if (forceRefresh) searchParams.set('refresh', 'true')
+      if (template) searchParams.set('template', JSON.stringify(template))
+      
+      const url = `/api/sales-data?${searchParams.toString()}`
       const response = await fetch(url)
       
       if (!response.ok) {
@@ -60,8 +66,28 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    fetchSalesData()
+    // Load template from localStorage
+    const savedTemplate = localStorage.getItem('selectedEmailTemplate')
+    if (savedTemplate) {
+      try {
+        const parsed = JSON.parse(savedTemplate)
+        setTemplate(parsed)
+      } catch {
+        // If parsing fails, use default template
+        setTemplate(getDefaultTemplate())
+      }
+    } else {
+      // No saved template, use default
+      setTemplate(getDefaultTemplate())
+    }
   }, [])
+
+  useEffect(() => {
+    // Fetch sales data when template is available
+    if (template) {
+      fetchSalesData()
+    }
+  }, [template]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefresh = () => {
     fetchSalesData(true)
@@ -74,7 +100,11 @@ export default function DashboardPage() {
 
   const fetchDebugData = async () => {
     try {
-      const response = await fetch('/api/debug')
+      const searchParams = new URLSearchParams()
+      if (template) searchParams.set('template', JSON.stringify(template))
+      
+      const url = `/api/debug?${searchParams.toString()}`
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setDebugData(data)

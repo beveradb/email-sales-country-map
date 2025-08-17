@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
           </p>
           <ul>
             <li><strong>Google Account Information:</strong> Your email address and basic profile information through Google OAuth</li>
-            <li><strong>Gmail Data:</strong> We read emails from clips4sale.com with the subject "You've made a sale" to extract country information</li>
+            <li><strong>Gmail Data:</strong> We read emails matching your configured criteria to extract country information</li>
             <li><strong>Usage Data:</strong> Basic analytics about how you interact with our application</li>
           </ul>
         </section>
@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
           <p>We use your information solely to:</p>
           <ul>
             <li>Authenticate you through Google OAuth</li>
-            <li>Scan your Gmail for sales notification emails from clips4sale.com</li>
+            <li>Scan your Gmail for sales notification emails matching your configured criteria</li>
             <li>Extract country data from these emails</li>
             <li>Display aggregated sales data on an interactive world map</li>
             <li>Provide session management for your account</li>

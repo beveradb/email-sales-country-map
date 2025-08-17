@@ -1,8 +1,68 @@
+import { useState, useEffect } from 'react'
+import { EMAIL_TEMPLATES, type EmailTemplate, getDefaultTemplate } from '../config/emailTemplates'
 import './LoginPage.css'
 
 export default function LoginPage() {
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate>(getDefaultTemplate())
+  const [customSubject, setCustomSubject] = useState('')
+  const [customRegex, setCustomRegex] = useState('')
+  const [showCustomHelp, setShowCustomHelp] = useState(false)
+
+  useEffect(() => {
+    // Load saved template from localStorage
+    const savedTemplate = localStorage.getItem('selectedEmailTemplate')
+    if (savedTemplate) {
+      try {
+        const parsed = JSON.parse(savedTemplate)
+        setSelectedTemplate(parsed)
+        if (parsed.id === 'custom') {
+          setCustomSubject(parsed.subjectQuery || '')
+          setCustomRegex(parsed.countryRegex || '')
+        }
+      } catch {
+        // If parsing fails, use default template
+        setSelectedTemplate(getDefaultTemplate())
+      }
+    }
+  }, [])
+
+  const getCurrentTemplate = (): EmailTemplate => {
+    if (selectedTemplate.id === 'custom') {
+      return {
+        ...selectedTemplate,
+        subjectQuery: customSubject.trim(),
+        countryRegex: customRegex.trim()
+      }
+    }
+    return selectedTemplate
+  }
+
   const handleLogin = () => {
-    window.location.href = '/api/auth/login'
+    const template = getCurrentTemplate()
+    
+    // Validate custom template
+    if (template.id === 'custom' && (!customSubject.trim() || !customRegex.trim())) {
+      alert('Please fill in both the subject query and country regex pattern for your custom configuration.')
+      return
+    }
+
+    // Save template selection
+    localStorage.setItem('selectedEmailTemplate', JSON.stringify(template))
+    
+    // Include template config in the login URL so backend can use it
+    const templateParam = `?template=${encodeURIComponent(JSON.stringify(template))}`
+    window.location.href = `/api/auth/login${templateParam}`
+  }
+
+  const handleTemplateChange = (templateId: string) => {
+    const template = EMAIL_TEMPLATES.find(t => t.id === templateId)
+    if (template) {
+      setSelectedTemplate(template)
+      if (template.id === 'custom') {
+        setCustomSubject('')
+        setCustomRegex('')
+      }
+    }
   }
 
   return (
@@ -16,19 +76,20 @@ export default function LoginPage() {
           </div>
           <p className="tagline">
             A free, open-source data visualization tool that helps content creators understand their 
-            global customer base by analyzing sales notification emails from platforms like Clips4Sale. 
+            global customer base by analyzing sales notification emails from any platform. 
             Visualize your sales data on beautiful, interactive world maps.
           </p>
         </div>
 
+
+
         {/* App Features */}
         <div className="app-overview">
-          
           <div className="features-grid">
             <div className="feature-item">
               <span className="feature-icon">🔍</span>
               <h3>Smart Email Scanning</h3>
-              <p>Securely scans your Gmail for sales notification emails from Clips4Sale with "You've made a sale" subject lines</p>
+              <p>Securely scans your Gmail for sales notification emails matching your configured criteria</p>
             </div>
             <div className="feature-item">
               <span className="feature-icon">🌍</span>
@@ -51,12 +112,104 @@ export default function LoginPage() {
         {/* Quick Login Section */}
         <div className="quick-login-section">
           <h2>Ready to Visualize Your Sales?</h2>
-          <p>Click below to securely connect your Gmail account and start exploring your global sales data</p>
+          <p>First, choose your email platform or create a custom configuration:</p>
+          
+          {/* Template Selection */}
+          <div className="template-selection-inline">
+            <div className="template-selector">
+              <label htmlFor="template-select">Email Platform:</label>
+              <select 
+                id="template-select"
+                value={selectedTemplate.id}
+                onChange={(e) => handleTemplateChange(e.target.value)}
+                className="template-dropdown"
+              >
+                {EMAIL_TEMPLATES.map(template => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedTemplate.id !== 'custom' && (
+              <div className="template-info-inline">
+                <p><strong>Platform:</strong> {selectedTemplate.description}</p>
+                {selectedTemplate.exampleEmail && (
+                  <p><strong>Example:</strong> "{selectedTemplate.exampleEmail.subject}"</p>
+                )}
+              </div>
+            )}
+
+            {selectedTemplate.id === 'custom' && (
+              <div className="custom-config-inline">
+                <div className="custom-fields">
+                  <div className="custom-field">
+                    <label htmlFor="custom-subject">
+                      Gmail Search Query:
+                      <button 
+                        type="button" 
+                        className="help-button"
+                        onClick={() => setShowCustomHelp(!showCustomHelp)}
+                      >
+                        ?
+                      </button>
+                    </label>
+                    <input
+                      id="custom-subject"
+                      type="text"
+                      value={customSubject}
+                      onChange={(e) => setCustomSubject(e.target.value)}
+                      placeholder='e.g., subject:"Sale confirmation" OR from:sales@mystore.com'
+                      className="custom-input"
+                    />
+                  </div>
+
+                  <div className="custom-field">
+                    <label htmlFor="custom-regex">Country Extraction Pattern (Regex):</label>
+                    <input
+                      id="custom-regex"
+                      type="text"
+                      value={customRegex}
+                      onChange={(e) => setCustomRegex(e.target.value)}
+                      placeholder="e.g., Country:\\s*([A-Za-z\\s]+)"
+                      className="custom-input"
+                    />
+                  </div>
+                </div>
+
+                {showCustomHelp && (
+                  <div className="custom-help-inline">
+                    <div className="help-content">
+                      <div className="help-column">
+                        <h4>Gmail Search Examples:</h4>
+                        <ul>
+                          <li><code>subject:"Sale confirmation"</code></li>
+                          <li><code>from:sales@mystore.com</code></li>
+                          <li><code>subject:"Order" AND from:shop@example.com</code></li>
+                        </ul>
+                      </div>
+                      <div className="help-column">
+                        <h4>Regex Pattern Examples:</h4>
+                        <ul>
+                          <li><code>Country:\\s*([A-Za-z\\s]+)</code></li>
+                          <li><code>Location:\\s*([^\\n]+)</code></li>
+                          <li><code>Shipping to:\\s*([A-Za-z\\s,]+)</code></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <p>You'll get a Google warning; click <strong>"Advanced"</strong>, <strong>"Go to mailsalesmap.org (unsafe)"</strong>, then <strong>"Continue"</strong> to proceed:</p>
           
           <button 
             className="login-button"
             onClick={handleLogin}
+            disabled={selectedTemplate.id === 'custom' && (!customSubject.trim() || !customRegex.trim())}
           >
             <svg className="google-icon" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -69,7 +222,7 @@ export default function LoginPage() {
 
           <div className="security-notice">
             <p>
-              <strong>🔒 Your privacy is our priority:</strong> We only access sales emails from Clips4Sale, 
+              <strong>🔒 Your privacy is our priority:</strong> We only access emails matching your configured criteria, 
               process data securely, and never store your personal information permanently. Or scroll down to learn more about how it works.
             </p>
           </div>
@@ -83,11 +236,11 @@ export default function LoginPage() {
             sales notification emails. Here's exactly what we do:
           </p>
           <ul className="data-usage-list">
-            <li>Search for emails from Clips4Sale with "You've made a sale" in the subject line</li>
-            <li>Read the email content to extract country information (e.g., "Country from IP: United States")</li>
+            <li>Search for emails matching your configured criteria</li>
+            <li>Read the email content to extract country information using your specified pattern</li>
             <li>Count and aggregate sales by country for visualization</li>
             <li><strong>We never store your emails or personal data permanently</strong></li>
-            <li><strong>We never read emails from other senders or with different subjects</strong></li>
+            <li><strong>We only read emails matching your exact configuration</strong></li>
             <li><strong>Your data is processed securely and never shared with third parties</strong></li>
           </ul>
         </div>
@@ -178,7 +331,7 @@ export default function LoginPage() {
 
           <div className="security-notice">
             <p>
-              <strong>🔒 Your privacy is our priority:</strong> We only access sales emails from Clips4Sale, 
+              <strong>🔒 Your privacy is our priority:</strong> We only access emails matching your configuration, 
               process data securely, and never store your personal information permanently.
             </p>
           </div>
