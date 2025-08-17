@@ -81,6 +81,9 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
   }
 
   const getSalesForCountry = (countryName: string, countryId: string) => {
+    // Ensure we have valid inputs and salesData
+    if (!salesData || !countryName || !countryId) return 0
+    
     // Try exact match first
     if (salesData[countryName]) return salesData[countryName]
     
@@ -92,8 +95,10 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
     
     // Try reverse lookup in our sales data
     const matchingKey = Object.keys(salesData).find(key => 
-      key.toLowerCase() === countryName.toLowerCase() ||
-      countryNameMap[key] === countryId
+      key && countryName && (
+        key.toLowerCase() === countryName.toLowerCase() ||
+        countryNameMap[key] === countryId
+      )
     )
     
     return matchingKey ? salesData[matchingKey] : 0
@@ -112,9 +117,9 @@ export default function WorldMap({ salesData, mode }: WorldMapProps) {
           {({ geographies }: { geographies: any[] }) => (
             <>
               {geographies.map((geo: any) => {
-                const countryName = geo.properties.NAME
-                const countryId = geo.properties.ISO_A3
-                const sales = getSalesForCountry(countryName, countryId)
+                const countryName = geo?.properties?.NAME
+                const countryId = geo?.properties?.ISO_A3
+                const sales = getSalesForCountry(countryName || '', countryId || '')
                 
                 return (
                   <Geography
