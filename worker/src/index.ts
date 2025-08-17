@@ -137,20 +137,32 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 		listUrl.searchParams.set('maxResults', '10')
 		
 		const res = await fetch(listUrl, { headers: { authorization: `Bearer ${accessToken}` } })
+		if (!res.ok) {
+			return json({ 
+				error: 'Gmail API request failed', 
+				status: res.status,
+				statusText: res.statusText 
+			}, res.status)
+		}
+		
 		const listResult = await res.json() as any
 		
 		const debugInfo: any = {
 			searchQuery: query,
 			listResponse: listResult,
-			messageCount: listResult.messages?.length || 0,
+			messageCount: Array.isArray(listResult.messages) ? listResult.messages.length : 0,
 			resultOk: res.ok,
 			status: res.status
 		}
 		
 		// If we have messages, get details of the first one
-		if (listResult.messages?.length > 0) {
+		if (Array.isArray(listResult.messages) && listResult.messages.length > 0) {
 			try {
-				const firstMessageId = listResult.messages[0].id
+				const firstMessageId = listResult.messages[0]?.id
+				if (!firstMessageId) {
+					debugInfo.messageError = 'First message has no ID'
+					return json(debugInfo)
+				}
 				const msgRes = await fetch(GMAIL_GET_ENDPOINT(firstMessageId), {
 					headers: { authorization: `Bearer ${accessToken}` }
 				})
@@ -159,13 +171,24 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 				// Extract email body text for debugging (both plain text and HTML)
 				const bodyParts: string[] = []
 				function collect(p: any) {
-					if (!p) return
+					if (!p || typeof p !== 'object') return
 					if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
-						try { bodyParts.push(atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))) } catch {}
+						try { 
+							const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
+							if (decoded && typeof decoded === 'string') {
+								bodyParts.push(decoded)
+							}
+						} catch (e) {
+							// Ignore malformed base64 data
+						}
 					}
-					if (Array.isArray(p.parts)) p.parts.forEach(collect)
+					if (Array.isArray(p.parts)) {
+						p.parts.forEach((part: any) => collect(part))
+					}
 				}
-				collect(msgDetails.payload)
+				if (msgDetails?.payload) {
+					collect(msgDetails.payload)
+				}
 				const emailText = bodyParts.join('\n')
 				
 				// Test the country parsing regex
@@ -174,9 +197,9 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 				
 				debugInfo.firstMessage = {
 					id: firstMessageId,
-					subject: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'subject')?.value,
-					from: msgDetails.payload?.headers?.find((h: any) => h.name.toLowerCase() === 'from')?.value,
-					snippet: msgDetails.snippet,
+					subject: msgDetails.payload?.headers?.find((h: any) => h?.name?.toLowerCase() === 'subject')?.value || 'No subject',
+					from: msgDetails.payload?.headers?.find((h: any) => h?.name?.toLowerCase() === 'from')?.value || 'No sender',
+					snippet: msgDetails.snippet || 'No snippet',
 					bodyLength: emailText.length,
 					bodyPreview: emailText.substring(0, 500) + (emailText.length > 500 ? '...' : ''),
 					countryMatch: countryMatch?.[0] || null,
@@ -236,11 +259,20 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 			if (!msg) continue
 			const bodyParts: string[] = []
 			function collect(p: any) {
-				if (!p) return
+				if (!p || typeof p !== 'object') return
 				if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
-					try { bodyParts.push(atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))) } catch {}
+					try { 
+						const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
+						if (decoded && typeof decoded === 'string') {
+							bodyParts.push(decoded)
+						}
+					} catch (e) {
+						// Ignore malformed base64 data
+					}
 				}
-				if (Array.isArray(p.parts)) p.parts.forEach(collect)
+				if (Array.isArray(p.parts)) {
+					p.parts.forEach((part: any) => collect(part))
+				}
 			}
 			collect(msg.payload)
 			const text = bodyParts.join('\n')
