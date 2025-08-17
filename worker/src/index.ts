@@ -151,7 +151,7 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 		if (listResult.messages?.length > 0) {
 			try {
 				const firstMessageId = listResult.messages[0].id
-				const msgRes = await fetch(`${GMAIL_GET_ENDPOINT}/${firstMessageId}`, {
+				const msgRes = await fetch(GMAIL_GET_ENDPOINT(firstMessageId), {
 					headers: { authorization: `Bearer ${accessToken}` }
 				})
 				const msgDetails = await msgRes.json()
