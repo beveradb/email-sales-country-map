@@ -5,64 +5,98 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MailSalesMap</title>
+    <style>
+      @media (max-width: 768px) {
+        body {
+          padding: 1rem 0 !important;
+        }
+        #fallback-content {
+          width: 95% !important;
+          padding: 2rem !important;
+          margin: 0.5rem auto !important;
+        }
+        #fallback-content h1 {
+          font-size: 2rem !important;
+        }
+        #fallback-content .logo-title {
+          flex-direction: column !important;
+          gap: 0.5rem !important;
+        }
+      }
+      @media (max-width: 480px) {
+        #fallback-content {
+          width: 98% !important;
+          padding: 1.5rem 1rem !important;
+        }
+        #fallback-content h1 {
+          font-size: 1.5rem !important;
+        }
+        #fallback-content .tagline {
+          font-size: 1rem !important;
+        }
+      }
+    </style>
   </head>
-  <body>
+  <body style="margin: 0; padding: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
     <div id="root">
       <!-- Loading indicator for when JavaScript is enabled but app hasn't loaded yet -->
       <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #4CAF50; color: white; padding: 10px; text-align: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <span>🔄 Loading Email Sales Map...</span>
+        <span>🔄 App Loading...</span>
         <div style="margin-top: 5px; font-size: 12px;" id="loading-details">Initializing application</div>
       </div>
       
       <!-- Static content for crawlers and users with JavaScript disabled -->
       <!-- Note: Static HTML versions of legal pages are available at /privacy.html and /tos.html -->
-      <div id="fallback-content" style="max-width: 800px; margin: 0 auto; padding: 100px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
-        <header style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #333; margin-bottom: 10px;">Email Sales Map</h1>
-          <p style="color: #666; font-size: 18px;">A free, open-source data visualization tool for content creators</p>
+      <div id="fallback-content" style="background: white; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); max-width: 1000px; width: 90%; margin: 2rem auto; padding: 4rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; box-sizing: border-box;">
+        <header style="text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+          <div class="logo-title" style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+            <img src="/logo.svg" alt="Email Sales Map Logo" style="width: 56px; height: 56px; object-fit: contain;">
+            <h1 style="font-size: 3rem; color: #1a202c; margin: 0; font-weight: 700;">Email Sales Map</h1>
+          </div>
+          <p class="tagline" style="color: #4a5568; font-size: 1.2rem; margin: 1rem auto 0 auto; font-weight: 400; max-width: 700px; line-height: 1.5;">A free, open-source data visualization tool that helps content creators understand their global customer base by analyzing sales notification emails from any platform.</p>
         </header>
         
         <main>
           <section style="margin-bottom: 30px;">
-            <h2 style="color: #333;">About Email Sales Map</h2>
-            <p>Email Sales Map helps content creators understand their global customer base by analyzing sales notification emails from any platform. Visualize your sales data on beautiful, interactive world maps.</p>
+            <h2 style="color: #1a202c; font-size: 1.8rem; margin-bottom: 1rem;">About Email Sales Map</h2>
+            <p style="color: #4a5568; font-size: 1.1rem; margin-bottom: 1.5rem;">Email Sales Map helps content creators understand their global customer base by analyzing sales notification emails from any platform. Visualize your sales data on beautiful, interactive world maps.</p>
             
-            <h3 style="color: #333; margin-top: 25px;">Key Features:</h3>
-            <ul style="color: #555;">
-              <li>🔍 Smart Email Scanning - Securely scans Gmail for sales notifications</li>
-              <li>🌍 Geographic Analysis - Extracts country information from sale emails</li>
-              <li>📊 Interactive Visualization - Beautiful world maps with sales data</li>
-              <li>📈 Sales Analytics - Statistics and insights about top-performing countries</li>
+            <h3 style="color: #1a202c; margin-top: 25px; font-size: 1.2rem; margin-bottom: 0.5rem;">Key Features:</h3>
+            <ul style="color: #4a5568; list-style: none; padding: 0;">
+              <li style="padding: 0.75rem 0; position: relative; padding-left: 1.5rem;">🔍 Smart Email Scanning - Securely scans Gmail for sales notifications</li>
+              <li style="padding: 0.75rem 0; position: relative; padding-left: 1.5rem;">🌍 Geographic Analysis - Extracts country information from sale emails</li>
+              <li style="padding: 0.75rem 0; position: relative; padding-left: 1.5rem;">📊 Interactive Visualization - Beautiful world maps with sales data</li>
+              <li style="padding: 0.75rem 0; position: relative; padding-left: 1.5rem;">📈 Sales Analytics - Statistics and insights about top-performing countries</li>
             </ul>
           </section>
           
           <section style="margin-bottom: 30px;">
-            <h2 style="color: #333;">Privacy & Security</h2>
-            <p>🔒 Your privacy is our priority. We only access emails matching your configured criteria, process data securely, and never store your personal information permanently.</p>
-            <p><strong>Read our full <a href="/privacy" style="color: #0066cc; text-decoration: underline;">Privacy Policy</a> for detailed information about data handling.</strong></p>
+            <h2 style="color: #1a202c; font-size: 1.8rem; margin-bottom: 1rem;">Privacy & Security</h2>
+            <p style="color: #4a5568; font-size: 1.1rem; margin-bottom: 1.5rem;">🔒 Your privacy is our priority. We only access emails matching your configured criteria, process data securely, and never store your personal information permanently.</p>
+            <p style="color: #4a5568;"><strong>Read our full <a href="/privacy" style="color: #4285f4; text-decoration: none; font-weight: 500;">Privacy Policy</a> for detailed information about data handling.</strong></p>
           </section>
           
           <section style="margin-bottom: 30px;">
-            <h2 style="color: #333;">Getting Started</h2>
-            <p><strong>JavaScript Required:</strong> This application requires JavaScript to function. Please enable JavaScript in your browser to use Email Sales Map.</p>
-            <p>Once JavaScript is enabled, you can sign in securely with your Google account to start visualizing your sales data.</p>
+            <h2 style="color: #1a202c; font-size: 1.8rem; margin-bottom: 1rem;">Getting Started</h2>
+            <p style="color: #4a5568; font-size: 1.1rem;"><strong>JavaScript Required:</strong> This application requires JavaScript to function. Please enable JavaScript in your browser to use Email Sales Map.</p>
+            <p style="color: #4a5568; font-size: 1.1rem;">Once JavaScript is enabled, you can sign in securely with your Google account to start visualizing your sales data.</p>
           </section>
           
           <section style="margin-bottom: 30px;">
-            <h2 style="color: #333;">Open Source</h2>
-            <p>Email Sales Map is completely open source. View the source code on <a href="https://github.com/beveradb/mailsalesmap" style="color: #0066cc; text-decoration: underline;">GitHub</a>.</p>
+            <h2 style="color: #1a202c; font-size: 1.8rem; margin-bottom: 1rem;">Open Source</h2>
+            <p style="color: #4a5568; font-size: 1.1rem;">Email Sales Map is completely open source. View the source code on <a href="https://github.com/beveradb/mailsalesmap" style="color: #4285f4; text-decoration: none; font-weight: 500;">GitHub</a>.</p>
           </section>
         </main>
         
-        <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666;">
-          <p>
-            <a href="/privacy" style="color: #0066cc; text-decoration: underline; margin: 0 10px;">Privacy Policy</a>
-            <span>•</span>
-            <a href="/tos" style="color: #0066cc; text-decoration: underline; margin: 0 10px;">Terms of Service</a>
-            <span>•</span>
-            <a href="https://github.com/beveradb/mailsalesmap" style="color: #0066cc; text-decoration: underline; margin: 0 10px;">Source Code</a>
+        <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+          <p style="color: #4a5568; margin: 0;">
+            <a href="/privacy" style="color: #4285f4; text-decoration: none; font-weight: 500; margin: 0 10px;">Privacy Policy</a>
+            <span style="color: #cbd5e0;">•</span>
+            <a href="/tos" style="color: #4285f4; text-decoration: none; font-weight: 500; margin: 0 10px;">Terms of Service</a>
+            <span style="color: #cbd5e0;">•</span>
+            <a href="https://github.com/beveradb/mailsalesmap" style="color: #4285f4; text-decoration: none; font-weight: 500; margin: 0 10px;">Source Code</a>
           </p>
-          <p style="margin-top: 10px; font-size: 14px;">Created by <a href="https://www.linkedin.com/in/andrewbeveridge/" style="color: #0066cc; text-decoration: underline;">Andrew Beveridge</a></p>
+          <p style="margin-top: 10px; font-size: 14px; color: #4a5568;">Created by <a href="https://www.linkedin.com/in/andrewbeveridge/" style="color: #4285f4; text-decoration: none; font-weight: 500;">Andrew Beveridge</a></p>
         </footer>
       </div>
     </div>
@@ -181,7 +215,7 @@
             fallbackContent.style.display = 'none';
           }
         }
-      }, 30000); // Wait 30 seconds for app to load (increased for slow connections)
+      }, 60000); // Wait 60 seconds for app to load (increased for slow connections)
     </script>
     
     <!-- Module loading with fallback detection -->
@@ -191,14 +225,14 @@
       console.log('🔍 ES Module support detected:', moduleSupported);
       
       if (window.updateLoadingStatus) {
-        window.updateLoadingStatus(moduleSupported ? 'Loading ES modules...' : 'ES modules not supported, checking alternatives...');
+        window.updateLoadingStatus(moduleSupported ? 'Loading JavaScript code required to make the app work...' : 'ES modules not supported, checking alternatives...');
       }
       
       // Track module loading
       var moduleLoadTimeout = setTimeout(function() {
         console.error('🚨 Module loading timeout - script may have failed to load');
         if (window.updateLoadingStatus) {
-          window.updateLoadingStatus('Module loading timeout - possible network or compatibility issue');
+          window.updateLoadingStatus('The site is taking longer to load than normal - you may have network issues');
         }
         if (window.loadingErrors) {
           window.loadingErrors.push({
