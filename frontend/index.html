@@ -5,16 +5,6 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MailSalesMap</title>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M7C1T7EM1M"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-M7C1T7EM1M');
-    </script>
   </head>
   <body>
     <div id="root">
@@ -26,7 +16,7 @@
       
       <!-- Static content for crawlers and users with JavaScript disabled -->
       <!-- Note: Static HTML versions of legal pages are available at /privacy.html and /tos.html -->
-      <div id="fallback-content" style="max-width: 800px; margin: 0 auto; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+      <div id="fallback-content" style="max-width: 800px; margin: 0 auto; padding: 100px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
         <header style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #333; margin-bottom: 10px;">Email Sales Map</h1>
           <p style="color: #666; font-size: 18px;">A free, open-source data visualization tool for content creators</p>
@@ -191,7 +181,7 @@
             fallbackContent.style.display = 'none';
           }
         }
-      }, 3000); // Wait 3 seconds for app to load
+      }, 30000); // Wait 30 seconds for app to load (increased for slow connections)
     </script>
     
     <!-- Module loading with fallback detection -->
@@ -217,7 +207,7 @@
             timestamp: Date.now()
           });
         }
-      }, 5000);
+      }, 8000);
       
       // Clear timeout if modules load successfully
       window.addEventListener('load', function() {
@@ -241,6 +231,16 @@
           timestamp: Date.now()
         });
       }
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M7C1T7EM1M"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-M7C1T7EM1M');
     </script>
   </body>
 </html>

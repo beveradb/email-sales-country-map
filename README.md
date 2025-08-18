@@ -6,7 +6,7 @@ Data visualization tool that authenticates with Google, reads configurable sales
 
 The app should be live and usable here: https://mailsalesmap.org
 
-<img src="frontend/public/screenshots/dashboard-example.png" alt="Dashboard Example" width="800" />
+<img src="frontend/public/screenshots/dashboard-example.avif" alt="Dashboard Example" width="800" />
 
 ## 🏗️ Architecture
 - **Frontend**: React + TypeScript + Vite (served by Cloudflare Pages)

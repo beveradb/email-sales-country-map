@@ -23,10 +23,14 @@ export default defineConfig({
         },
       },
     },
-    // Ensure source maps for better debugging
-    sourcemap: true,
+    // Optimize for slow connections
+    minify: true,
+    // Ensure source maps for better debugging in dev
+    sourcemap: false, // Disable in production to reduce size
     // Add build verification
     reportCompressedSize: true,
+    // Set smaller chunk size warning limit
+    chunkSizeWarningLimit: 500,
   },
   // Ensure proper module resolution
   resolve: {
