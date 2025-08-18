@@ -215,12 +215,12 @@
 
 .dashboard-loading p {
   font-size: 1.2rem;
-  color: #4a5568;
+  color: #ffffff;
   margin: 1rem 0 0.5rem;
 }
 
 .dashboard-loading small {
-  color: #718096;
+  color: #a9c3ea;
 }
 
 .dashboard-error {
