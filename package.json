@@ -10,6 +10,8 @@
     "dev": "concurrently \"npm run dev:worker\" \"npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:worker": "cd worker && npm run dev",
+    "preview": "concurrently \"npm run dev:worker\" \"npm run preview:frontend\"",
+    "preview:frontend": "cd frontend && npm run preview",
     "build": "npm run build:frontend && npm run build:worker",
     "build:frontend": "cd frontend && npm run build",
     "build:worker": "cd worker && npm run deploy -- --dry-run",

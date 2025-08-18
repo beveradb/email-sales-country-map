@@ -257,7 +257,7 @@ export default function LoginPage() {
                 <h3>First Warning Screen</h3>
                 <p>You'll see Google's unverified app warning. Click <strong>"Advanced"</strong> then <strong>"Go to mailsalesmap.org (unsafe)"</strong>:</p>
                 <div className="screenshot-placeholder">
-                  <img src="/screenshots/google-warning-1.avif" alt="Google warning screen 1 - Click Advanced then Go to mailsalesmap.org (unsafe)" />
+                  <img loading="lazy" src="/screenshots/google-warning-1.avif" alt="Google warning screen 1 - Click Advanced then Go to mailsalesmap.org (unsafe)" />
                   <p className="screenshot-caption">Click "Advanced" then "Go to mailsalesmap.org (unsafe)"</p>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function LoginPage() {
                 <h3>Second Permission Screen</h3>
                 <p>You'll see another screen asking for Gmail permissions. Click <strong>"Continue"</strong> to proceed:</p>
                 <div className="screenshot-placeholder">
-                  <img src="/screenshots/google-warning-2.avif" alt="Google warning screen 2 - Click Continue to grant Gmail access" />
+                  <img loading="lazy" src="/screenshots/google-warning-2.avif" alt="Google warning screen 2 - Click Continue to grant Gmail access" />
                   <p className="screenshot-caption">Click "Continue" to grant read-only Gmail access</p>
                 </div>
               </div>
@@ -281,7 +281,7 @@ export default function LoginPage() {
                 <h3>Your Sales Dashboard</h3>
                 <p>After granting access, you'll see your interactive world map with sales data visualized:</p>
                 <div className="screenshot-placeholder">
-                  <img src="/screenshots/dashboard-example.avif" alt="Example dashboard showing world map with sales data" />
+                  <img loading="lazy" src="/screenshots/dashboard-example.avif" alt="Example dashboard showing world map with sales data" />
                   <p className="screenshot-caption">Your personalized sales map and statistics</p>
                 </div>
               </div>

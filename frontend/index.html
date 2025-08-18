@@ -39,18 +39,11 @@
   </head>
   <body style="margin: 0; padding: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
     <div id="root">
-      <!-- Loading indicator for when JavaScript is enabled but app hasn't loaded yet -->
-      <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: #4CAF50; color: white; padding: 10px; text-align: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <span>🔄 App Loading...</span>
-        <div style="margin-top: 5px; font-size: 12px;" id="loading-details">Initializing application</div>
-      </div>
-      
       <!-- Static content for crawlers and users with JavaScript disabled -->
       <!-- Note: Static HTML versions of legal pages are available at /privacy.html and /tos.html -->
       <div id="fallback-content" style="background: white; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); max-width: 1000px; width: 90%; margin: 2rem auto; padding: 4rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; box-sizing: border-box;">
         <header style="text-align: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0;">
           <div class="logo-title" style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-            <img src="/logo.svg" alt="Email Sales Map Logo" style="width: 56px; height: 56px; object-fit: contain;">
             <h1 style="font-size: 3rem; color: #1a202c; margin: 0; font-weight: 700;">Email Sales Map</h1>
           </div>
           <p class="tagline" style="color: #4a5568; font-size: 1.2rem; margin: 1rem auto 0 auto; font-weight: 400; max-width: 700px; line-height: 1.5;">A free, open-source data visualization tool that helps content creators understand their global customer base by analyzing sales notification emails from any platform.</p>
@@ -100,175 +93,10 @@
         </footer>
       </div>
     </div>
-    <!-- JavaScript Loading Diagnostics -->
-    <script>
-      // Track if JavaScript is enabled and working
-      window.jsEnabled = true;
-      window.loadingErrors = [];
-      window.loadingStart = Date.now();
-      
-      // Show loading indicator immediately when JS is enabled
-      var loadingIndicator = document.getElementById('loading-indicator');
-      if (loadingIndicator) {
-        loadingIndicator.style.display = 'block';
-      }
-      
-      // Log when the page starts loading
-      console.log('🔍 JavaScript Diagnostics: Page loading started');
-      
-      // Update loading details
-      function updateLoadingStatus(message) {
-        var details = document.getElementById('loading-details');
-        if (details) {
-          details.textContent = message;
-        }
-        console.log('📱 Loading Status:', message);
-      }
-      
-      updateLoadingStatus('JavaScript enabled, loading modules...');
-      
-      // Track module loading errors
-      window.addEventListener('error', function(e) {
-        console.error('🚨 JavaScript Error:', e.error);
-        updateLoadingStatus('Error detected: ' + (e.message || 'Unknown error'));
-        window.loadingErrors.push({
-          type: 'error',
-          message: e.message,
-          filename: e.filename,
-          lineno: e.lineno,
-          timestamp: Date.now()
-        });
-      });
-      
-      // Track unhandled promise rejections (common with module loading)
-      window.addEventListener('unhandledrejection', function(e) {
-        console.error('🚨 Unhandled Promise Rejection:', e.reason);
-        updateLoadingStatus('Promise rejection: ' + (e.reason?.toString() || 'Unknown'));
-        window.loadingErrors.push({
-          type: 'promise_rejection',
-          reason: e.reason?.toString() || 'Unknown promise rejection',
-          timestamp: Date.now()
-        });
-      });
-      
-      // Check if React app loaded successfully after a delay
-      setTimeout(function() {
-        var root = document.getElementById('root');
-        var fallbackContent = document.getElementById('fallback-content');
-        var loadingIndicator = document.getElementById('loading-indicator');
-        var hasReactContent = root && root.children.length > 2; // More than loading indicator and fallback div
-        var loadTime = Date.now() - window.loadingStart;
-        
-        if (!hasReactContent) {
-          console.error('🚨 React app failed to load after ' + loadTime + 'ms');
-          console.log('📊 Loading errors:', window.loadingErrors);
-          console.log('🔍 Root element children:', root ? root.children.length : 'No root element');
-          
-          // Update UI to show error state
-          if (loadingIndicator) {
-            loadingIndicator.style.background = '#f44336';
-            loadingIndicator.innerHTML = '<span>⚠️ Application failed to load</span><div style="margin-top: 5px; font-size: 12px;">Check browser console for details</div>';
-          }
-          
-          // Add error notice to fallback content
-          if (fallbackContent) {
-            var errorNotice = document.createElement('div');
-            errorNotice.style.cssText = 'background: #ffebee; border: 1px solid #f44336; padding: 15px; margin-bottom: 20px; border-radius: 4px; color: #c62828;';
-            errorNotice.innerHTML = '<h3 style="margin: 0 0 10px 0; color: #c62828;">⚠️ Application Loading Issue Detected</h3><p style="margin: 0;">The interactive application failed to load. This may be due to:<br/>• Network connectivity issues<br/>• Browser compatibility problems<br/>• Content blocking software<br/>• JavaScript module loading failures</p><p style="margin: 10px 0 0 0; font-size: 14px;"><strong>For developers:</strong> Check the browser console for detailed error information.</p>';
-            fallbackContent.insertBefore(errorNotice, fallbackContent.firstChild);
-          }
-          
-          // Send diagnostic data to console for debugging
-          var diagnostics = {
-            userAgent: navigator.userAgent,
-            loadTime: loadTime,
-            errors: window.loadingErrors,
-            rootChildren: root ? root.children.length : 0,
-            jsEnabled: window.jsEnabled,
-            timestamp: new Date().toISOString(),
-            url: window.location.href,
-            referrer: document.referrer
-          };
-          
-          console.log('📋 Full Diagnostics:', JSON.stringify(diagnostics, null, 2));
-          
-          // Try to report to a simple endpoint if available (optional)
-          try {
-            fetch('/api/diagnostics', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(diagnostics)
-            }).catch(function(e) {
-              console.log('📡 Could not send diagnostics to server (this is expected in many cases)');
-            });
-          } catch (e) {
-            // Silently fail if fetch is not available
-          }
-        } else {
-          console.log('✅ React app loaded successfully in ' + loadTime + 'ms');
-          // Hide loading indicator on success
-          if (loadingIndicator) {
-            loadingIndicator.style.display = 'none';
-          }
-          // Hide fallback content on success
-          if (fallbackContent) {
-            fallbackContent.style.display = 'none';
-          }
-        }
-      }, 60000); // Wait 60 seconds for app to load (increased for slow connections)
-    </script>
-    
-    <!-- Module loading with fallback detection -->
-    <script>
-      // Detect module support and loading
-      var moduleSupported = 'noModule' in HTMLScriptElement.prototype;
-      console.log('🔍 ES Module support detected:', moduleSupported);
-      
-      if (window.updateLoadingStatus) {
-        window.updateLoadingStatus(moduleSupported ? 'Loading JavaScript code required to make the app work...' : 'ES modules not supported, checking alternatives...');
-      }
-      
-      // Track module loading
-      var moduleLoadTimeout = setTimeout(function() {
-        console.error('🚨 Module loading timeout - script may have failed to load');
-        if (window.updateLoadingStatus) {
-          window.updateLoadingStatus('The site is taking longer to load than normal - you may have network issues');
-        }
-        if (window.loadingErrors) {
-          window.loadingErrors.push({
-            type: 'module_timeout',
-            message: 'ES module failed to load within expected time',
-            timestamp: Date.now()
-          });
-        }
-      }, 8000);
-      
-      // Clear timeout if modules load successfully
-      window.addEventListener('load', function() {
-        clearTimeout(moduleLoadTimeout);
-      });
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Fallback for browsers that don't support modules -->
-    <script nomodule>
-      console.warn('⚠️ ES Modules not supported in this browser');
-      if (window.updateLoadingStatus) {
-        window.updateLoadingStatus('Browser does not support ES modules');
-      }
-      if (window.loadingErrors) {
-        window.loadingErrors.push({
-          type: 'no_module_support',
-          message: 'Browser does not support ES modules',
-          userAgent: navigator.userAgent,
-          timestamp: Date.now()
-        });
-      }
-    </script>
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M7C1T7EM1M"></script>
+    <script defer src="https://www.googletagmanager.com/gtag/js?id=G-M7C1T7EM1M"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
