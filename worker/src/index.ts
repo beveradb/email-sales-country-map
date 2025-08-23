@@ -332,7 +332,7 @@ async function gmailBatchGetMessages(accessToken: string, ids: string[]): Promis
       `GET /gmail/v1/users/me/messages/${id}?format=full HTTP/1.1\r\n` +
       '\r\n'
   }
-  body += `--${boundary}--`
+  body += `--${boundary}--\r\n`
 
   const res = await fetch(GMAIL_BATCH_ENDPOINT, {
     method: 'POST',
@@ -381,6 +381,54 @@ async function gmailBatchGetMessages(accessToken: string, ids: string[]): Promis
   return messages
 }
 
+function htmlToPlainText(input: string): string {
+\tlet text = input
+\t// Normalize line breaks from common HTML tags
+\ttext = text.replace(/<\s*br\s*\/?\s*>/gi, '\n')
+\ttext = text.replace(/<\s*\/p\s*>/gi, '\n')
+\ttext = text.replace(/<\s*\/div\s*>/gi, '\n')
+\t// Strip all remaining tags
+\ttext = text.replace(/<[^>]+>/g, '')
+\t// Decode common HTML entities
+\ttext = text.replace(/&nbsp;/gi, ' ')
+\ttext = text.replace(/&amp;/gi, '&')
+\ttext = text.replace(/&lt;/gi, '<')
+\ttext = text.replace(/&gt;/gi, '>')
+\ttext = text.replace(/&quot;/gi, '"')
+\ttext = text.replace(/&#39;/gi, "'")
+\t// Collapse excessive whitespace
+\ttext = text.replace(/[\t\r]+/g, ' ')
+\ttext = text.replace(/\u00A0/g, ' ')
+\ttext = text.replace(/\s{2,}/g, ' ')
+\t// Preserve lines where applicable
+\ttext = text.replace(/\s*\n\s*/g, '\n')
+\treturn text
+}
+
+function extractBodyTextFromGmailPayload(payload: any): { plainText: string; joinedParts: string } {
+\tconst bodyParts: string[] = []
+\tfunction collect(p: any) {
+\t	if (!p || typeof p !== 'object') return
+\t	if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
+\t		try {
+\t			const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
+\t			if (decoded && typeof decoded === 'string') {
+\t				bodyParts.push(decoded)
+\t			}
+\t		} catch (e) {
+\t			// Ignore malformed base64 data
+\t		}
+\t	}
+\t	if (Array.isArray(p.parts)) {
+\t		p.parts.forEach((part: any) => collect(part))
+\t	}
+\t}
+\tcollect(payload)
+\tconst joined = bodyParts.join('\n')
+\tconst plain = htmlToPlainText(joined)
+\treturn { plainText: plain, joinedParts: joined }
+}
+
 router.get('/api/sales-data', async (request: Request, env: Env) => {
 	const session = await getSession(request, env)
 	const accessToken = await ensureAccessToken(env, session)
@@ -414,38 +462,36 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	const counts: Record<string, number> = {}
 	const countryTimestamps: Record<string, number[]> = {} // Track all timestamps per country
+	let processedMessages = 0
+	let matchedMessages = 0
 	const batchSize = 100 // Gmail batch supports many per request; 100 is a safe default
 	for (let i = 0; i < messageIds.length; i += batchSize) {
 		const batchIds = messageIds.slice(i, i + batchSize)
 		const results = await gmailBatchGetMessages(accessToken, batchIds)
 		for (const msg of results) {
 			if (!msg) continue
-			const bodyParts: string[] = []
-			function collect(p: any) {
-				if (!p || typeof p !== 'object') return
-				if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
-					try { 
-						const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
-						if (decoded && typeof decoded === 'string') {
-							bodyParts.push(decoded)
-						}
-					} catch (e) {
-						// Ignore malformed base64 data
-					}
-				}
-				if (Array.isArray(p.parts)) {
-					p.parts.forEach((part: any) => collect(part))
-				}
-			}
-			collect(msg.payload)
-			const text = bodyParts.join('\n')
+			processedMessages++
+			const { plainText } = extractBodyTextFromGmailPayload(msg.payload)
 			// Use the template's regex pattern to extract country information
 			const countryRegex = new RegExp(template.countryRegex, 'i')
-			const match = text.match(countryRegex)
+			let match = plainText.match(countryRegex)
+			if (!match) {
+				// Broader fallbacks for common wording variations
+				const fallbackPatterns = [
+					/Country\s*from\s*IP\s*:?\s*([^\n\r]+)/i,
+					/IP\s*Country\s*:?\s*([^\n\r]+)/i,
+					/Country\s*:?\s*([^\n\r]+)/i
+				]
+				for (const fp of fallbackPatterns) {
+					const m = plainText.match(fp)
+					if (m) { match = m; break }
+				}
+			}
 			if (match) {
 				const country = match[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '')
 				if (country && country !== 'IP:' && country.length > 0) {
 					counts[country] = (counts[country] || 0) + 1
+					matchedMessages++
 					
 					// Extract timestamp from email (use internalDate which is the received timestamp)
 					const timestamp = msg.internalDate ? parseInt(msg.internalDate) : Date.now()
@@ -474,7 +520,17 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	const body = JSON.stringify(enrichedData)
 	await env.SALES_CACHE.put(cacheKey, body, { expirationTtl: 3600 })
-	return new Response(body, { headers: { 'content-type': 'application/json; charset=utf-8' } })
+	const urlForDebug = new URL(request.url)
+	const withDebug = urlForDebug.searchParams.get('debug') === '1'
+	const headers: HeadersInit = { 'content-type': 'application/json; charset=utf-8' }
+	if (withDebug) {
+		(headers as Record<string, string>)['x-sales-debug'] = JSON.stringify({
+			messageIds: messageIds.length,
+			processedMessages,
+			matchedMessages
+		})
+	}
+	return new Response(body, { headers })
 })
 
 // Fallback for non-API routes - redirect to Pages
