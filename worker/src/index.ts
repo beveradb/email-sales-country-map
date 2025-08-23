@@ -60,6 +60,7 @@ const GOOGLE_OAUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 const GMAIL_LIST_ENDPOINT = 'https://gmail.googleapis.com/gmail/v1/users/me/messages'
 const GMAIL_GET_ENDPOINT = (id: string) => `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`
+const GMAIL_BATCH_ENDPOINT = 'https://gmail.googleapis.com/batch/gmail/v1'
 
 function getRedirectUri(request: Request): string {
 	const url = new URL(request.url)
@@ -319,6 +320,67 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 	}
 })
 
+async function gmailBatchGetMessages(accessToken: string, ids: string[]): Promise<any[]> {
+  if (ids.length === 0) return []
+  const boundary = `batch_${crypto.randomUUID()}`
+  let body = ''
+  for (const id of ids) {
+    body += `--${boundary}\r\n` +
+      'Content-Type: application/http\r\n' +
+      'Content-Transfer-Encoding: binary\r\n' +
+      '\r\n' +
+      `GET /gmail/v1/users/me/messages/${id}?format=full HTTP/1.1\r\n` +
+      '\r\n'
+  }
+  body += `--${boundary}--`
+
+  const res = await fetch(GMAIL_BATCH_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      'content-type': `multipart/mixed; boundary=${boundary}`
+    },
+    body
+  })
+
+  if (!res.ok) return []
+
+  const contentType = res.headers.get('content-type') || ''
+  const match = contentType.match(/boundary=([^;]+)/i)
+  if (!match) {
+    // Fallback: attempt to parse whole body as JSON array if server didn't return multipart
+    try {
+      const fallback = await res.json() as any
+      return Array.isArray(fallback) ? fallback : []
+    } catch {
+      return []
+    }
+  }
+  const responseBoundary = match[1].replace(/"/g, '')
+  const text = await res.text()
+  const rawParts = text.split(`--${responseBoundary}`)
+  const messages: any[] = []
+  for (const rawPart of rawParts) {
+    const part = rawPart.trim()
+    if (!part || part === '--') continue
+    // Skip the outer headers (application/http), then the embedded HTTP headers
+    const firstBreak = part.indexOf('\r\n\r\n')
+    if (firstBreak === -1) continue
+    const afterOuterHeaders = part.slice(firstBreak + 4)
+    const secondBreak = afterOuterHeaders.indexOf('\r\n\r\n')
+    if (secondBreak === -1) continue
+    const httpBody = afterOuterHeaders.slice(secondBreak + 4).trim()
+    if (!httpBody) continue
+    try {
+      const parsed = JSON.parse(httpBody)
+      if (parsed && parsed.payload) messages.push(parsed)
+    } catch {
+      // ignore non-JSON parts
+    }
+  }
+  return messages
+}
+
 router.get('/api/sales-data', async (request: Request, env: Env) => {
 	const session = await getSession(request, env)
 	const accessToken = await ensureAccessToken(env, session)
@@ -338,7 +400,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 	while (true) {
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
 		listUrl.searchParams.set('q', query)
-		listUrl.searchParams.set('maxResults', '100')
+		listUrl.searchParams.set('maxResults', '500')
 		if (nextPageToken) listUrl.searchParams.set('pageToken', nextPageToken)
 		const res = await fetch(listUrl, { headers: { authorization: `Bearer ${accessToken}` } })
 		if (!res.ok) break
@@ -352,14 +414,10 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	const counts: Record<string, number> = {}
 	const countryTimestamps: Record<string, number[]> = {} // Track all timestamps per country
-	const chunkSize = 25 // Workers have concurrency limits; small chunk size
-	for (let i = 0; i < messageIds.length; i += chunkSize) {
-		const chunk = messageIds.slice(i, i + chunkSize)
-		const results = await Promise.all(chunk.map(async (id) => {
-			const res = await fetch(GMAIL_GET_ENDPOINT(id), { headers: { authorization: `Bearer ${accessToken}` } })
-			if (!res.ok) return null
-			return res.json() as Promise<any>
-		}))
+	const batchSize = 100 // Gmail batch supports many per request; 100 is a safe default
+	for (let i = 0; i < messageIds.length; i += batchSize) {
+		const batchIds = messageIds.slice(i, i + batchSize)
+		const results = await gmailBatchGetMessages(accessToken, batchIds)
 		for (const msg of results) {
 			if (!msg) continue
 			const bodyParts: string[] = []
