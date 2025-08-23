@@ -1,5 +1,7 @@
 import { ComposableMap, Geographies, Geography, Marker, type Geography as GeographyType } from 'react-simple-maps'
+import { useState } from 'react'
 import { scaleLinear } from 'd3-scale'
+import { geoCentroid } from 'd3-geo'
 import type { SalesData } from './DashboardPage'
 import './WorldMap.css'
 
@@ -30,6 +32,7 @@ interface GeographiesRenderProps {
 }
 
 export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
+  const [selected, setSelected] = useState<{ name: string; count: number; coordinates: [number, number] } | null>(null)
   const salesValues = Object.values(salesData).map(data => data.count)
   const maxSales = Math.max(...salesValues, 1)
   const minSales = Math.min(...salesValues.filter(v => v > 0), 0)
@@ -70,6 +73,12 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     if (count >= low) return colorScale(count)
     return '#f8fafc' // Very light grey for countries with sales but below low threshold
   }
+
+  const sanitizeName = (name: string) =>
+    (name || '')
+      .replace(/\b(Sincerely|Regards|Best regards|Thank you|Thanks)\b.*$/i, '')
+      .replace(/[.;:]+$/g, '')
+      .trim()
 
   // Enhanced country name mapping with both directions
   const countryNameMap: { [key: string]: string } = {
@@ -136,13 +145,14 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     if (!salesData || (!countryName && !countryId)) return 0
     
     // Try exact match first (case-insensitive)
-    if (countryName && salesData[countryName]) {
-      return salesData[countryName].count
+    const primary = sanitizeName(countryName)
+    if (primary && salesData[primary]) {
+      return salesData[primary].count
     }
     
     // Try case-insensitive match
     const exactMatch = Object.keys(salesData).find(key => 
-      key.toLowerCase() === (countryName || '').toLowerCase()
+      key.toLowerCase() === (primary || '').toLowerCase()
     )
     if (exactMatch) {
       return salesData[exactMatch].count
@@ -157,8 +167,8 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     }
     
     // Try mapping from name to ISO and check both ways
-    if (countryName && countryNameMap[countryName]) {
-      const isoCode = countryNameMap[countryName]
+    if (primary && countryNameMap[primary]) {
+      const isoCode = countryNameMap[primary]
       const altName = reverseCountryMap[isoCode]
       if (altName && salesData[altName]) {
         return salesData[altName].count
@@ -167,9 +177,9 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
     
     // Try partial matches
     const partialMatch = Object.keys(salesData).find(key => 
-      key && countryName && (
-        key.toLowerCase().includes(countryName.toLowerCase()) ||
-        countryName.toLowerCase().includes(key.toLowerCase())
+      key && primary && (
+        key.toLowerCase().includes(primary.toLowerCase()) ||
+        primary.toLowerCase().includes(key.toLowerCase())
       )
     )
     if (partialMatch) {
@@ -200,6 +210,7 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
                   const countryName = geo?.properties?.name
                   const countryId = geo?.properties?.iso_a3 || String(geo?.id || '')
                   const sales = getSalesForCountry(countryName || '', countryId)
+                  const coords = geoCentroid(geo as unknown as { type: string; geometry: { type: string; coordinates: unknown } }) as [number, number]
                   
                   const fillColor = mode === 'choropleth' 
                     ? getColorByCutoff(sales)
@@ -230,6 +241,13 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
                         fillOpacity: settings.opacity,
                       },
                     }}
+                    onClick={() => {
+                      if (sales > 0) {
+                        setSelected({ name: countryName || '', count: sales, coordinates: coords })
+                      } else {
+                        setSelected(null)
+                      }
+                    }}
                     title={`${countryName}: ${sales} sales`}
                     />
                   )
@@ -239,89 +257,67 @@ export default function WorldMap({ salesData, mode, settings }: WorldMapProps) {
           }}
         </Geographies>
         
-        {mode === 'dots' &&
-          Object.entries(salesData).map(([country, data]) => {
-            const coordinates = getCountryCoordinates(country)
-            if (!coordinates) return null
-            
-            const size = sizeScale(data.count)
-            const color = getColorByCutoff(data.count)
-            
-            return (
-              <Marker key={country} coordinates={coordinates}>
-                {settings.dotStyle === 'emoji' ? (
-                  <text
-                    textAnchor="middle"
-                    y={size / 4}
-                    fontSize={size}
-                    style={{ cursor: 'pointer' }}
-                    opacity={settings.opacity}
-                  >
-                    {settings.dotEmoji}
-                    <title>{`${country}: ${data.count} sales`}</title>
-                  </text>
-                ) : (
-                  <circle
-                    r={size}
-                    fill={color}
-                    fillOpacity={settings.opacity}
-                    stroke={colorThemes[settings.colorTheme][1]}
-                    strokeWidth={1}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <title>{`${country}: ${data.count} sales`}</title>
-                  </circle>
-                )}
-              </Marker>
-            )
-          })
-        }
+        {mode === 'dots' && (
+          <Geographies geography={geoUrl}>
+            {({ geographies }: GeographiesRenderProps) => (
+              <>
+                {geographies.map((geo: GeographyType) => {
+                  const countryName = geo?.properties?.name
+                  const countryId = geo?.properties?.iso_a3 || String(geo?.id || '')
+                  const sales = getSalesForCountry(countryName || '', countryId)
+                  if (sales <= 0) return null
+                  const coordinates = geoCentroid(geo as unknown as { type: string; geometry: { type: string; coordinates: unknown } }) as [number, number]
+                  const size = sizeScale(sales)
+                  const color = getColorByCutoff(sales)
+                  return (
+                    <Marker key={`dot-${geo.rsmKey}`} coordinates={coordinates}>
+                      {settings.dotStyle === 'emoji' ? (
+                        <text
+                          textAnchor="middle"
+                          y={size / 4}
+                          fontSize={size}
+                          style={{ cursor: 'pointer' }}
+                          opacity={settings.opacity}
+                        >
+                          {settings.dotEmoji}
+                          <title>{`${countryName}: ${sales} sales`}</title>
+                        </text>
+                      ) : (
+                        <circle
+                          r={size}
+                          fill={color}
+                          fillOpacity={settings.opacity}
+                          stroke={colorThemes[settings.colorTheme][1]}
+                          strokeWidth={1}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <title>{`${countryName}: ${sales} sales`}</title>
+                        </circle>
+                      )}
+                    </Marker>
+                  )
+                })}
+              </>
+            )}
+          </Geographies>
+        )}
+
+        {selected && (
+          <Marker coordinates={selected.coordinates}>
+            <g transform="translate(0, -20)" style={{ pointerEvents: 'none' }}>
+              <rect x={-60} y={-30} rx={6} ry={6} width={120} height={40} fill="#ffffff" stroke="#94a3b8" strokeWidth={1} opacity={0.95} />
+              <text x={0} y={-12} textAnchor="middle" fontSize={12} fill="#0f172a">
+                {selected.name}
+              </text>
+              <text x={0} y={6} textAnchor="middle" fontSize={12} fill="#334155">
+                {selected.count} sales
+              </text>
+            </g>
+          </Marker>
+        )}
       </ComposableMap>
     </div>
   )
 }
 
-// Simple coordinate lookup - in a real app you'd want a comprehensive database
-function getCountryCoordinates(country: string): [number, number] | null {
-  const coords: { [key: string]: [number, number] } = {
-    'United States': [-95, 40],
-    'United Kingdom': [-2, 54],
-    'Germany': [10, 51],
-    'France': [2, 46],
-    'Canada': [-106, 56],
-    'Australia': [133, -27],
-    'Japan': [138, 36],
-    'Brazil': [-48, -15],
-    'India': [77, 20],
-    'China': [104, 35],
-    'Russia': [105, 61],
-    'Italy': [12, 42],
-    'Spain': [-4, 40],
-    'Netherlands': [5, 52],
-    'Sweden': [18, 60],
-    'Norway': [10, 60],
-    'Finland': [26, 64],
-    'Denmark': [9, 56],
-    'Belgium': [4, 50],
-    'Switzerland': [8, 47],
-    'Austria': [14, 47],
-    'Poland': [19, 52],
-    'Mexico': [-102, 23],
-    'Argentina': [-64, -34],
-    'Chile': [-71, -30],
-    'South Africa': [22, -30],
-    'Egypt': [30, 26],
-    'Israel': [35, 31],
-    'Turkey': [35, 39],
-    'South Korea': [128, 36],
-    'Thailand': [100, 15],
-    'Indonesia': [113, -0.8],
-    'Malaysia': [101, 4],
-    'Singapore': [104, 1],
-    'Philippines': [121, 13],
-    'Vietnam': [108, 14],
-    'New Zealand': [174, -41],
-  }
-  
-  return coords[country] || null
-}
+// Legacy helper removed; centroids are derived from geographies now

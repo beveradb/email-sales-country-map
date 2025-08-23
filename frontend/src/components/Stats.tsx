@@ -18,13 +18,14 @@ export default function Stats({ salesData }: StatsProps) {
     }))
     .sort((a, b) => b.sales - a.sales)
 
-  const topCountries = sortedCountries.slice(0, 5)
-  const lowestCountries = sortedCountries.slice(-5).reverse()
+  const LIST_SIZE = 20
+  const topCountries = sortedCountries.slice(0, LIST_SIZE)
+  const lowestCountries = sortedCountries.slice(-LIST_SIZE).reverse()
 
-  // Sort by most recent first sale for "Newest 5 Countries"
+  // Sort by most recent first sale for "Newest Countries"
   const newestCountries = [...sortedCountries]
     .sort((a, b) => b.firstSale - a.firstSale)
-    .slice(0, 5)
+    .slice(0, LIST_SIZE)
 
   const topCountry = sortedCountries[0]
   const leastCountry = sortedCountries[sortedCountries.length - 1]
@@ -86,11 +87,11 @@ export default function Stats({ salesData }: StatsProps) {
         )}
       </div>
 
-      {/* Row 2: Top 5, Bottom 5, Newest 5 Countries */}
+      {/* Row 2: Top 20, Bottom 20, Newest 20 Countries */}
       <div className="stats-row-2">
         {topCountries.length > 0 && (
           <div className="stats-card">
-            <h3>Top 5 Countries</h3>
+            <h3>Top {Math.min(LIST_SIZE, sortedCountries.length)} Countries</h3>
             <div className="leaderboard-compact">
               {topCountries.map((item, index) => (
                 <div key={item.country} className="leaderboard-item-compact">
@@ -105,9 +106,9 @@ export default function Stats({ salesData }: StatsProps) {
 
         {lowestCountries.length > 0 && sortedCountries.length > 1 && (
           <div className="stats-card">
-            <h3>Bottom {Math.min(5, sortedCountries.length)} Countries</h3>
+            <h3>Bottom {Math.min(LIST_SIZE, sortedCountries.length)} Countries</h3>
             <div className="leaderboard-compact">
-              {lowestCountries.slice(0, Math.min(5, sortedCountries.length)).map((item, index) => (
+              {lowestCountries.slice(0, Math.min(LIST_SIZE, sortedCountries.length)).map((item, index) => (
                 <div key={item.country} className="leaderboard-item-compact">
                   <span className="rank">#{sortedCountries.length - index}</span>
                   <span className="country">{item.country}</span>
@@ -120,7 +121,7 @@ export default function Stats({ salesData }: StatsProps) {
 
         {newestCountries.length > 0 && (
           <div className="stats-card">
-            <h3>Newest 5 Countries</h3>
+            <h3>Newest {Math.min(LIST_SIZE, sortedCountries.length)} Countries</h3>
             <div className="leaderboard-compact">
               {newestCountries.map((item, index) => (
                 <div key={item.country} className="leaderboard-item-compact">

@@ -1,5 +1,6 @@
 declare module 'react-simple-maps' {
   import { ReactElement, ReactNode } from 'react'
+  import type React from 'react'
 
   export interface ComposableMapProps {
     projection?: string
@@ -30,11 +31,13 @@ declare module 'react-simple-maps' {
       pressed?: React.CSSProperties
     }
     title?: string
+    onClick?: (event: React.MouseEvent<SVGPathElement, MouseEvent>) => void
   }
 
   export interface MarkerProps {
     coordinates: [number, number]
     children?: ReactNode
+    key?: string
   }
 
   export interface Geography {

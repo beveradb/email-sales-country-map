@@ -429,6 +429,23 @@ function extractBodyTextFromGmailPayload(payload: any): { plainText: string; joi
 	return { plainText: plain, joinedParts: joined }
 }
 
+function sanitizeCountryName(raw: string): string {
+	let country = (raw || '').trim()
+	// Remove HTML entities artifacts
+	country = country.replace(/&\w+;/g, ' ')
+	// Stop at first comma or pipe if present (table formatting or extra text)
+	country = country.split(',')[0]
+	country = country.split('|')[0]
+	// Remove common trailing phrases that sometimes get concatenated
+	country = country.replace(/\b(Sincerely|Regards|Best regards|Thank you|Thanks|Customer email|Email|Support)\b.*$/i, '')
+	// Trim anything that looks like an IP label fragment
+	country = country.replace(/\b(IP|from IP)\b.*$/i, '')
+	// Collapse whitespace and trim punctuation
+	country = country.replace(/\s+/g, ' ').trim()
+	country = country.replace(/[\.;:]+$/g, '').trim()
+	return country
+}
+
 router.get('/api/sales-data', async (request: Request, env: Env) => {
 	const session = await getSession(request, env)
 	const accessToken = await ensureAccessToken(env, session)
@@ -488,7 +505,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 				}
 			}
 			if (match) {
-				const country = match[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '')
+				const country = sanitizeCountryName(match[1].replace(/\*/g, ''))
 				if (country && country !== 'IP:' && country.length > 0) {
 					counts[country] = (counts[country] || 0) + 1
 					matchedMessages++
