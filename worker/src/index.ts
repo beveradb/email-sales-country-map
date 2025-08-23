@@ -40,7 +40,7 @@ function json(data: unknown, init: number | ResponseInit = 200): Response {
 function getTemplateFromRequest(request: Request): EmailTemplate {
 	const url = new URL(request.url)
 	const templateParam = url.searchParams.get('template')
-	
+
 	if (templateParam) {
 		try {
 			const parsed = JSON.parse(templateParam) as EmailTemplate
@@ -52,7 +52,7 @@ function getTemplateFromRequest(request: Request): EmailTemplate {
 			console.warn('Failed to parse template parameter:', e)
 		}
 	}
-	
+
 	return DEFAULT_TEMPLATE
 }
 
@@ -64,12 +64,12 @@ const GMAIL_BATCH_ENDPOINT = 'https://gmail.googleapis.com/batch/gmail/v1'
 
 function getRedirectUri(request: Request): string {
 	const url = new URL(request.url)
-	
+
 	// For local development, force localhost:8787
 	if (url.host === 'localhost:8787') {
 		return 'http://localhost:8787/api/auth/callback'
 	}
-	
+
 	const base = `${url.protocol}//${url.host}`
 	return `${base}/api/auth/callback`
 }
@@ -83,11 +83,11 @@ router.get('/api/auth/logout', async (request: Request, env: Env) => {
 	const cookieHeader = request.headers.get('cookie') || ''
 	const cookies = parseCookie(cookieHeader)
 	const sid = cookies['sid']
-	
+
 	if (sid) {
 		await env.SESSIONS.delete(`session:${sid}`)
 	}
-	
+
 	const cookie = serializeCookie('sid', '', { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 0 })
 	return new Response(null, { status: 302, headers: { location: '/login', 'set-cookie': cookie } })
 })
@@ -95,11 +95,11 @@ router.get('/api/auth/logout', async (request: Request, env: Env) => {
 router.get('/api/auth/login', (request: Request, env: Env) => {
 	const clientId = (env as unknown as Record<string, string>).GOOGLE_CLIENT_ID
 	if (!clientId) return json({ error: 'server not configured' }, 500)
-	
+
 	// Extract template from request and encode it in state parameter
 	const template = getTemplateFromRequest(request)
 	const state = encodeURIComponent(JSON.stringify({ template }))
-	
+
 	const redirectUri = getRedirectUri(request)
 	const params = new URLSearchParams({
 		client_id: clientId,
@@ -135,14 +135,14 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	// For the callback, we need to use the same redirect_uri that was used in the initial OAuth request
 	// In local development, this should always be localhost:8787
 	const redirectUri = getRedirectUri(request)
-	
+
 	// Use environment variable to determine if we're in local development
 	const environment = (env as unknown as Record<string, string>).ENVIRONMENT
 	const isLocalDevelopment = environment === 'development'
-	const finalRedirectUri = isLocalDevelopment 
-		? 'http://localhost:8787/api/auth/callback' 
+	const finalRedirectUri = isLocalDevelopment
+		? 'http://localhost:8787/api/auth/callback'
 		: redirectUri
-	
+
 	const clientId = (env as unknown as Record<string, string>).GOOGLE_CLIENT_ID
 	const clientSecret = (env as unknown as Record<string, string>).GOOGLE_CLIENT_SECRET
 	if (!clientId || !clientSecret) return json({ error: 'server not configured' }, 500)
@@ -165,11 +165,11 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 			statusText: tokenRes.statusText,
 			error: errorText
 		})
-		return json({ 
+		return json({
 			error: 'token exchange failed',
 			details: errorText,
 			status: tokenRes.status,
-			redirectUri: finalRedirectUri 
+			redirectUri: finalRedirectUri
 		}, 500)
 	}
 	const tokenJson = await tokenRes.json() as any
@@ -181,7 +181,7 @@ router.get('/api/auth/callback', async (request: Request, env: Env) => {
 	await env.SESSIONS.put(`session:${sessionId}`, JSON.stringify(sessionData), { expirationTtl: 60 * 60 * 24 * 7 })
 
 	const cookie = serializeCookie('sid', sessionId, { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
-	
+
 	// Redirect back to frontend after successful authentication
 	const frontendUrl = environment === 'development' ? 'http://localhost:5173' : 'https://mailsalesmap.org'
 	return new Response(null, { status: 302, headers: { location: frontendUrl, 'set-cookie': cookie } })
@@ -223,29 +223,29 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 		const session = await getSession(request, env)
 		const accessToken = await ensureAccessToken(env, session)
 		if (!accessToken) return json({ error: 'unauthorized' }, 401)
-		
+
 		// Get template from session or request parameter, fallback to default
 		let template = session?.template || getTemplateFromRequest(request)
 		if (!template) template = DEFAULT_TEMPLATE
-		
+
 		const query = template.subjectQuery
-		
+
 		// Get first page of messages for debugging
 		const listUrl = new URL(GMAIL_LIST_ENDPOINT)
 		listUrl.searchParams.set('q', query)
 		listUrl.searchParams.set('maxResults', '10')
-		
+
 		const res = await fetch(listUrl, { headers: { authorization: `Bearer ${accessToken}` } })
 		if (!res.ok) {
-			return json({ 
-				error: 'Gmail API request failed', 
+			return json({
+				error: 'Gmail API request failed',
 				status: res.status,
-				statusText: res.statusText 
+				statusText: res.statusText
 			}, res.status)
 		}
-		
+
 		const listResult = await res.json() as any
-		
+
 		const debugInfo: any = {
 			template: template,
 			searchQuery: query,
@@ -254,7 +254,7 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 			resultOk: res.ok,
 			status: res.status
 		}
-		
+
 		// If we have messages, get details of the first one
 		if (Array.isArray(listResult.messages) && listResult.messages.length > 0) {
 			try {
@@ -267,14 +267,14 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 					headers: { authorization: `Bearer ${accessToken}` }
 				})
 				const msgDetails = await msgRes.json() as any
-				
+
 				// Extract email body text for debugging (both plain text and HTML)
 				const bodyParts: string[] = []
 				function collect(p: any) {
 					if (!p || typeof p !== 'object') return
 					if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
-						try { 
-							const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
+						try {
+							const decoded = atob(p.body.data.replace(/-/g, '+').replace(/_/g, '/'))
 							if (decoded && typeof decoded === 'string') {
 								bodyParts.push(decoded)
 							}
@@ -290,12 +290,12 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 					collect(msgDetails.payload)
 				}
 				const emailText = bodyParts.join('\n')
-				
+
 				// Test the country parsing regex from the template
 				const countryRegex = new RegExp(template.countryRegex, 'i')
 				const countryMatch = emailText.match(countryRegex)
 				const countryFound = countryMatch ? countryMatch[1].trim().replace(/\*/g, '').replace(/&\w+;/g, '') : null
-				
+
 				debugInfo.firstMessage = {
 					id: firstMessageId,
 					subject: msgDetails.payload?.headers?.find((h: any) => h?.name?.toLowerCase() === 'subject')?.value || 'No subject',
@@ -310,123 +310,123 @@ router.get('/api/debug', async (request: Request, env: Env) => {
 				debugInfo.messageError = err instanceof Error ? err.message : 'Failed to fetch message details'
 			}
 		}
-		
+
 		return json(debugInfo)
 	} catch (error) {
-		return json({ 
-			error: 'Debug endpoint failed', 
-			details: error instanceof Error ? error.message : 'Unknown error' 
+		return json({
+			error: 'Debug endpoint failed',
+			details: error instanceof Error ? error.message : 'Unknown error'
 		}, 500)
 	}
 })
 
 async function gmailBatchGetMessages(accessToken: string, ids: string[]): Promise<any[]> {
-  if (ids.length === 0) return []
-  const boundary = `batch_${crypto.randomUUID()}`
-  let body = ''
-  for (const id of ids) {
-    body += `--${boundary}\r\n` +
-      'Content-Type: application/http\r\n' +
-      'Content-Transfer-Encoding: binary\r\n' +
-      '\r\n' +
-      `GET /gmail/v1/users/me/messages/${id}?format=full HTTP/1.1\r\n` +
-      '\r\n'
-  }
-  body += `--${boundary}--\r\n`
+	if (ids.length === 0) return []
+	const boundary = `batch_${crypto.randomUUID()}`
+	let body = ''
+	for (const id of ids) {
+		body += `--${boundary}\r\n` +
+			'Content-Type: application/http\r\n' +
+			'Content-Transfer-Encoding: binary\r\n' +
+			'\r\n' +
+			`GET /gmail/v1/users/me/messages/${id}?format=full HTTP/1.1\r\n` +
+			'\r\n'
+	}
+	body += `--${boundary}--\r\n`
 
-  const res = await fetch(GMAIL_BATCH_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-      'content-type': `multipart/mixed; boundary=${boundary}`
-    },
-    body
-  })
+	const res = await fetch(GMAIL_BATCH_ENDPOINT, {
+		method: 'POST',
+		headers: {
+			authorization: `Bearer ${accessToken}`,
+			'content-type': `multipart/mixed; boundary=${boundary}`
+		},
+		body
+	})
 
-  if (!res.ok) return []
+	if (!res.ok) return []
 
-  const contentType = res.headers.get('content-type') || ''
-  const match = contentType.match(/boundary=([^;]+)/i)
-  if (!match) {
-    // Fallback: attempt to parse whole body as JSON array if server didn't return multipart
-    try {
-      const fallback = await res.json() as any
-      return Array.isArray(fallback) ? fallback : []
-    } catch {
-      return []
-    }
-  }
-  const responseBoundary = match[1].replace(/"/g, '')
-  const text = await res.text()
-  const rawParts = text.split(`--${responseBoundary}`)
-  const messages: any[] = []
-  for (const rawPart of rawParts) {
-    const part = rawPart.trim()
-    if (!part || part === '--') continue
-    // Skip the outer headers (application/http), then the embedded HTTP headers
-    const firstBreak = part.indexOf('\r\n\r\n')
-    if (firstBreak === -1) continue
-    const afterOuterHeaders = part.slice(firstBreak + 4)
-    const secondBreak = afterOuterHeaders.indexOf('\r\n\r\n')
-    if (secondBreak === -1) continue
-    const httpBody = afterOuterHeaders.slice(secondBreak + 4).trim()
-    if (!httpBody) continue
-    try {
-      const parsed = JSON.parse(httpBody)
-      if (parsed && parsed.payload) messages.push(parsed)
-    } catch {
-      // ignore non-JSON parts
-    }
-  }
-  return messages
+	const contentType = res.headers.get('content-type') || ''
+	const match = contentType.match(/boundary=([^;]+)/i)
+	if (!match) {
+		// Fallback: attempt to parse whole body as JSON array if server didn't return multipart
+		try {
+			const fallback = await res.json() as any
+			return Array.isArray(fallback) ? fallback : []
+		} catch {
+			return []
+		}
+	}
+	const responseBoundary = match[1].replace(/"/g, '')
+	const text = await res.text()
+	const rawParts = text.split(`--${responseBoundary}`)
+	const messages: any[] = []
+	for (const rawPart of rawParts) {
+		const part = rawPart.trim()
+		if (!part || part === '--') continue
+		// Skip the outer headers (application/http), then the embedded HTTP headers
+		const firstBreak = part.indexOf('\r\n\r\n')
+		if (firstBreak === -1) continue
+		const afterOuterHeaders = part.slice(firstBreak + 4)
+		const secondBreak = afterOuterHeaders.indexOf('\r\n\r\n')
+		if (secondBreak === -1) continue
+		const httpBody = afterOuterHeaders.slice(secondBreak + 4).trim()
+		if (!httpBody) continue
+		try {
+			const parsed = JSON.parse(httpBody)
+			if (parsed && parsed.payload) messages.push(parsed)
+		} catch {
+			// ignore non-JSON parts
+		}
+	}
+	return messages
 }
 
 function htmlToPlainText(input: string): string {
-\tlet text = input
-\t// Normalize line breaks from common HTML tags
-\ttext = text.replace(/<\s*br\s*\/?\s*>/gi, '\n')
-\ttext = text.replace(/<\s*\/p\s*>/gi, '\n')
-\ttext = text.replace(/<\s*\/div\s*>/gi, '\n')
-\t// Strip all remaining tags
-\ttext = text.replace(/<[^>]+>/g, '')
-\t// Decode common HTML entities
-\ttext = text.replace(/&nbsp;/gi, ' ')
-\ttext = text.replace(/&amp;/gi, '&')
-\ttext = text.replace(/&lt;/gi, '<')
-\ttext = text.replace(/&gt;/gi, '>')
-\ttext = text.replace(/&quot;/gi, '"')
-\ttext = text.replace(/&#39;/gi, "'")
-\t// Collapse excessive whitespace
-\ttext = text.replace(/[\t\r]+/g, ' ')
-\ttext = text.replace(/\u00A0/g, ' ')
-\ttext = text.replace(/\s{2,}/g, ' ')
-\t// Preserve lines where applicable
-\ttext = text.replace(/\s*\n\s*/g, '\n')
-\treturn text
+	let text = input
+	// Normalize line breaks from common HTML tags
+	text = text.replace(/<\s*br\s*\/?\s*>/gi, '\n')
+	text = text.replace(/<\s*\/p\s*>/gi, '\n')
+	text = text.replace(/<\s*\/div\s*>/gi, '\n')
+	// Strip all remaining tags
+	text = text.replace(/<[^>]+>/g, '')
+	// Decode common HTML entities
+	text = text.replace(/&nbsp;/gi, ' ')
+	text = text.replace(/&amp;/gi, '&')
+	text = text.replace(/&lt;/gi, '<')
+	text = text.replace(/&gt;/gi, '>')
+	text = text.replace(/&quot;/gi, '"')
+	text = text.replace(/&#39;/gi, "'")
+	// Collapse excessive whitespace
+	text = text.replace(/[\t\r]+/g, ' ')
+	text = text.replace(/\u00A0/g, ' ')
+	text = text.replace(/\s{2,}/g, ' ')
+	// Preserve lines where applicable
+	text = text.replace(/\s*\n\s*/g, '\n')
+	return text
 }
 
 function extractBodyTextFromGmailPayload(payload: any): { plainText: string; joinedParts: string } {
-\tconst bodyParts: string[] = []
-\tfunction collect(p: any) {
-\t	if (!p || typeof p !== 'object') return
-\t	if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
-\t		try {
-\t			const decoded = atob(p.body.data.replace(/-/g,'+').replace(/_/g,'/'))
-\t			if (decoded && typeof decoded === 'string') {
-\t				bodyParts.push(decoded)
-\t			}
-\t		} catch (e) {
-\t			// Ignore malformed base64 data
-\t		}
-\t	}
-\t	if (Array.isArray(p.parts)) {
-\t		p.parts.forEach((part: any) => collect(part))
-\t	}
-\t}
-\tcollect(payload)
-\tconst joined = bodyParts.join('\n')
-\tconst plain = htmlToPlainText(joined)
-\treturn { plainText: plain, joinedParts: joined }
+	const bodyParts: string[] = []
+	function collect(p: any) {
+		if (!p || typeof p !== 'object') return
+		if ((p.mimeType === 'text/plain' || p.mimeType === 'text/html') && p.body?.data) {
+			try {
+				const decoded = atob(p.body.data.replace(/-/g, '+').replace(/_/g, '/'))
+				if (decoded && typeof decoded === 'string') {
+					bodyParts.push(decoded)
+				}
+			} catch (e) {
+				// Ignore malformed base64 data
+			}
+		}
+		if (Array.isArray(p.parts)) {
+			p.parts.forEach((part: any) => collect(part))
+		}
+	}
+	collect(payload)
+	const joined = bodyParts.join('\n')
+	const plain = htmlToPlainText(joined)
+	return { plainText: plain, joinedParts: joined }
 }
 
 router.get('/api/sales-data', async (request: Request, env: Env) => {
@@ -492,7 +492,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 				if (country && country !== 'IP:' && country.length > 0) {
 					counts[country] = (counts[country] || 0) + 1
 					matchedMessages++
-					
+
 					// Extract timestamp from email (use internalDate which is the received timestamp)
 					const timestamp = msg.internalDate ? parseInt(msg.internalDate) : Date.now()
 					if (!countryTimestamps[country]) {
@@ -506,7 +506,7 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 	// Create enriched data structure with both counts and timestamps
 	const enrichedData: Record<string, { count: number; firstSale: number; lastSale: number }> = {}
-	
+
 	for (const [country, count] of Object.entries(counts)) {
 		const timestamps = countryTimestamps[country] || []
 		if (timestamps.length > 0) {
@@ -535,13 +535,13 @@ router.get('/api/sales-data', async (request: Request, env: Env) => {
 
 // Fallback for non-API routes - redirect to Pages
 router.all('*', (request: Request) => {
-  const url = new URL(request.url)
-  // If it's not an API route, this shouldn't be handled by the worker
-  if (!url.pathname.startsWith('/api/')) {
-    // Return a response that lets Cloudflare fall through to Pages
-    return new Response(null, { status: 404 })
-  }
-  return new Response('API endpoint not found', { status: 404 })
+	const url = new URL(request.url)
+	// If it's not an API route, this shouldn't be handled by the worker
+	if (!url.pathname.startsWith('/api/')) {
+		// Return a response that lets Cloudflare fall through to Pages
+		return new Response(null, { status: 404 })
+	}
+	return new Response('API endpoint not found', { status: 404 })
 })
 
 export default {
